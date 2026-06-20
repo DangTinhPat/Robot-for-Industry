@@ -1,0 +1,32 @@
+# ackermann_transform_node parameters
+# Match với robot_core.xacro và controller_gz_sim.yaml
+
+ackermann_transform:
+  ros__parameters:
+
+    # ── Geometry (từ robot_core.xacro) ─────────────────────────────────────
+    wheelbase: 0.21           # khoảng cách trục trước-sau (m)
+    track_width: 0.217        # khoảng cách tâm bánh trái-phải (m)
+    wheel_radius: 0.05        # bán kính bánh (m)
+    max_steer_angle: 0.52     # giới hạn servo (rad ≈ 29.8°), từ ros2_control.xacro
+
+    # ── Giới hạn tốc độ ────────────────────────────────────────────────────
+    # omega_max ở v_max = 0.8 * tan(0.52) / 0.21 ≈ 2.18 rad/s
+    max_linear_speed: 0.8     # m/s — tốc độ thẳng tối đa
+    max_linear_accel: 1.0     # m/s² — gia tốc tuyến tính tối đa
+    max_angular_accel: 2.0    # rad/s² — gia tốc góc tối đa
+
+    # ── Xử lý pure-rotation ────────────────────────────────────────────────
+    # TEB có thể ra lệnh v=0, omega≠0 (xoay tại chỗ) — Ackermann không làm được.
+    # rotation_creep_speed: tốc độ nhỏ inject để servo có thể tạo góc.
+    # Đặt = 0.0 để robot đứng yên khi nhận lệnh pure-rotation.
+    rotation_creep_speed: 0.08  # m/s (≈ 8 cm/s)
+    linear_deadzone: 0.015      # m/s — |v| nhỏ hơn này → coi là 0
+
+    # ── Safety ─────────────────────────────────────────────────────────────
+    cmd_timeout: 0.5          # s — gửi zero nếu không nhận cmd_vel trong thời gian này
+    publish_rate: 50.0        # Hz — tần số publish reference
+
+    # ── Topics ─────────────────────────────────────────────────────────────
+    input_topic: '/cmd_vel'
+    output_topic: '/ackermann_steering_controller/reference'

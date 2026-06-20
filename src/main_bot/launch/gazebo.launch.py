@@ -15,8 +15,8 @@ def generate_launch_description():
 
     xacro_file = os.path.join(pkg_path, 'description', 'robot.urdf.xacro')
     robot_description = xacro.process_file(xacro_file).toxml()
-
-    world_file = os.path.join(pkg_path, 'worlds', 'world.sdf')
+    world_file    = os.path.join(pkg_path, 'worlds', 'world.sdf')
+    bridge_config = os.path.join(pkg_path, 'config', 'gz_bridge.yaml')
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -25,69 +25,47 @@ def generate_launch_description():
         launch_arguments={
             'gz_args': f'-r {world_file}',
             'on_exit_shutdown': 'True',
-        }.items()
+        }.items(),
     )
 
-    robot_state_publisher_node = Node(
+    robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{
-            'robot_description': robot_description,
-            'use_sim_time': True,
-        }],
-        output='screen'
+        parameters=[{'robot_description': robot_description, 'use_sim_time': True}],
+        output='screen',
     )
 
-    spawn_node = Node(
-        package='ros_gz_sim',
-        executable='create',
-        arguments=[
-            '-name', 'dvt_robot',
-            '-topic', 'robot_description',
-            '-x', '0',
-            '-y', '0',
-            '-z', '0.1',
-        ],
-        output='screen'
-    )
-
-    bridge_config = os.path.join(pkg_path, 'config', 'gz_bridge.yaml')
     bridge_node = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         parameters=[{'config_file': bridge_config, 'use_sim_time': True}],
-        output='screen'
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_state_broadcaster'],
-        output='screen'
-    )
-
-    ackermann_steering_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['ackermann_steering_controller'],
-        output='screen'
-    )
-
-    # Chuyển đổi Twist (/cmd_vel) → TwistStamped (/ackermann_steering_controller/reference)
-    # để teleop_twist_keyboard kết nối được với ackermann_steering_controller
-    twist_stamper_node = Node(
-        package='twist_stamper',
-        executable='twist_stamper',
-        parameters=[{'use_sim_time': True}],
-        remappings=[
-            ('cmd_vel_in',  '/cmd_vel'),
-            ('cmd_vel_out', '/ackermann_steering_controller/reference'),
-        ],
         output='screen',
     )
 
-    # Relay ~/tf_odometry → /tf dùng TransformBroadcaster (đúng QoS cho tf2)
-    tf_relay_node = Node(
+    spawn_robot = Node(
+        package='ros_gz_sim',
+        executable='create',
+        arguments=['-name', 'dvt_robot', '-topic', 'robot_description',
+                   '-x', '0', '-y', '0', '-z', '0.1'],
+        output='screen',
+    )
+
+    jsb_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster'],
+        output='screen',
+    )
+
+    asc_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['ackermann_steering_controller'],
+        output='screen',
+    )
+
+    # Relay /ackermann_steering_controller/tf_odometry → /tf
+    odom_tf_relay = Node(
         package='main_bot',
         executable='odom_tf_relay.py',
         name='odom_tf_relay',
@@ -95,13 +73,29 @@ def generate_launch_description():
         output='screen',
     )
 
+    # Teleop: Twist → TwistStamped cho ackermann_steering_controller
+    # Subscribe /teleop_cmd_vel (KHÔNG phải /cmd_vel) để tránh conflict với
+    # ackermann_transform_node khi chạy Nav2 (cả hai đều publish lên /reference).
+    # Dùng: ros2 run teleop_twist_keyboard teleop_twist_keyboard \
+    #         --ros-args -r cmd_vel:=/teleop_cmd_vel
+    twist_stamper = Node(
+        package='twist_stamper',
+        executable='twist_stamper',
+        parameters=[{'use_sim_time': True}],
+        remappings=[
+            ('cmd_vel_in',  '/teleop_cmd_vel'),
+            ('cmd_vel_out', '/ackermann_steering_controller/reference'),
+        ],
+        output='screen',
+    )
+
     return LaunchDescription([
         gz_sim,
-        robot_state_publisher_node,
+        robot_state_publisher,
         bridge_node,
-        twist_stamper_node,
-        tf_relay_node,
-        TimerAction(period=2.0, actions=[spawn_node]),
-        TimerAction(period=5.0, actions=[joint_state_broadcaster_spawner]),
-        TimerAction(period=7.0, actions=[ackermann_steering_controller_spawner]),
+        TimerAction(period=2.0, actions=[spawn_robot]),
+        TimerAction(period=5.0, actions=[jsb_spawner]),
+        TimerAction(period=7.0, actions=[asc_spawner]),
+        TimerAction(period=9.0, actions=[odom_tf_relay]),
+        TimerAction(period=9.0, actions=[twist_stamper]),
     ])
