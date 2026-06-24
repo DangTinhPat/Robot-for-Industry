@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ─── Materials ─── -->
+  <material name="red">
+    <color rgba="0.8 0.0 0.0 1.0"/>
+  </material>
+
+  <!-- ─── Properties ─── -->
+  <xacro:property name="imu_length"    value="0.030"/>  <!-- 3 cm -->
+  <xacro:property name="imu_width"     value="0.020"/>  <!-- 2 cm -->
+  <xacro:property name="imu_thickness" value="0.005"/>  <!-- 0.5 cm -->
+  <xacro:property name="imu_mass"      value="0.001"/>  <!-- ~0 g  -->
+
+  <!-- ─── Link ─── -->
+  <link name="imu_frame">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 ${pi/2}"/>
+      <geometry>
+        <box size="${imu_length} ${imu_width} ${imu_thickness}"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${imu_length} ${imu_width} ${imu_thickness}"/>
+      </geometry>
+    </collision>
+    <xacro:inertial_box mass="${imu_mass}"
+                        x="${imu_length}" y="${imu_width}" z="${imu_thickness}">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+
+  <!-- ─── Joint: tâm chassis → tâm IMU ─── -->
+  <!-- Đặt sát mặt trên chassis, tại tâm xe (x=0 y=0) -->
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="imu_frame"/>
+    <origin xyz="0 0 ${chassis_height/2 + imu_thickness/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ─── Gazebo sensor ─── -->
+  <gazebo reference="imu_frame">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>1</always_on>
+      <update_rate>100</update_rate>
+      <topic>imu</topic>
+      <gz_frame_id>imu_frame</gz_frame_id>
+      <imu>
+        <angular_velocity>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.005</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.005</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.005</stddev></noise></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.020</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.020</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.020</stddev></noise></z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+  </gazebo>
+
+  <gazebo>
+    <plugin filename="gz-sim-imu-system"
+            name="gz::sim::systems::Imu"/>
+  </gazebo>
+
+</robot>

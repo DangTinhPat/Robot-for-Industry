@@ -94,9 +94,10 @@ private:
     std::pair<double, double> ackermann_constrain(double v, double w)
     {
         if (std::abs(v) < deadzone_) {
-            if (std::abs(w) < 1e-6) return {0.0, 0.0};
+            if (std::abs(w) < 0.05) return {0.0, 0.0};
             if (std::abs(creep_) < 1e-9) return {0.0, 0.0};
-            v = creep_;  // luôn dương — tránh lùi khi w < 0
+            // giữ hướng theo target_v_ để khớp ý định planner (tiến/lùi)
+            v = (target_v_ < -deadzone_) ? -creep_ : creep_;
         }
         double w_max = std::abs(v) * std::tan(max_steer_) / L_;
         return {v, std::clamp(w, -w_max, w_max)};

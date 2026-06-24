@@ -76,8 +76,8 @@ controller_server:
 
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
-      movement_time_allowance: 10.0
+      required_movement_radius: 0.2    # was 0.5 — tránh báo stuck khi điều chỉnh gần đích
+      movement_time_allowance: 30.0    # was 10.0 — đủ thời gian cho MPPI fine-tune
 
     general_goal_checker:
       stateful: True
@@ -98,7 +98,7 @@ controller_server:
       vy_std: 0.0        # Ackermann: không trượt ngang
       wz_std: 0.4
       vx_max: 0.5
-      vx_min: 0.0        # Ackermann: không lùi
+      vx_min: -0.2       # cho phép lùi tối đa 0.2 m/s
       vy_max: 0.0        # Ackermann: không trượt ngang
       wz_max: 1.36       # = vx_max / R_min = 0.5 / 0.367
       iteration_count: 1
@@ -186,7 +186,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.55
+        inflation_radius: 0.35
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -240,7 +240,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.55   # >= robot_radius (0.22) + safety margin
+        inflation_radius: 0.35   # >= robot_radius (0.22) + safety margin
       always_send_full_costmap: True
 
 map_saver:
@@ -264,14 +264,14 @@ planner_server:
       max_iterations: 1000000
       max_on_approach_iterations: 1000
       max_planning_time: 5.0
-      motion_model_for_search: "DUBIN"   # Chỉ tiến (không lùi)
+      motion_model_for_search: "REEDS_SHEPP"  # Cho phép lùi (thay DUBIN)
       angle_quantization_bins: 72
       analytic_expansion_ratio: 3.5
       analytic_expansion_max_length: 3.0
       analytic_expansion_max_cost: 200.0
       analytic_expansion_max_cost_override: false
       minimum_turning_radius: 0.40       # >= R_min (0.367), thêm margin
-      reverse_penalty: 2.0
+      reverse_penalty: 3.0              # was 2.0 — vẫn ưu tiên tiến hơn lùi
       change_penalty: 0.0
       non_straight_penalty: 1.2
       cost_penalty: 2.0
@@ -324,7 +324,7 @@ behavior_server:
     transform_tolerance: 0.1
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
-    min_rotational_vel: 0.4
+    min_rotational_vel: 0.5  # Ackermann cần speed đủ cao để creep có ý nghĩa
     rotational_acc_lim: 3.2
 
 waypoint_follower:
@@ -344,13 +344,13 @@ velocity_smoother:
     scale_velocities: False
     feedback: "CLOSED_LOOP"    # Đọc odom thực để smoothing chính xác
     max_velocity: [0.5, 0.0, 2.0]
-    min_velocity: [-0.5, 0.0, -2.0]
+    min_velocity: [-0.2, 0.0, -2.0]    # cho phép lùi tối đa 0.2 m/s (đồng bộ vx_min)
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
     odom_topic: "odom"
     odom_duration: 0.1
-    deadband_velocity: [0.0, 0.0, 0.0]
-    velocity_timeout: 1.0
+    deadband_velocity: [0.01, 0.0, 0.05]  # lọc nhiễu v<0.01 và w<0.05 trước khi publish
+    velocity_timeout: 0.3              # was 1.0 — publish zero nhanh hơn sau khi nav stop
 
 collision_monitor:
   ros__parameters:
