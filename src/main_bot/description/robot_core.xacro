@@ -4,20 +4,17 @@
   <xacro:include filename="inertial.xacro"/>
 
   <!-- ─── Properties ─── -->
-  <!-- Body scale ×4 (visualization request — lidar/imu sizes untouched, see their .xacro files) -->
-  <xacro:property name="body_scale"       value="4.0"/>
+  <xacro:property name="chassis_mass"     value="2.0"/>
+  <xacro:property name="chassis_length"   value="0.297"/>
+  <xacro:property name="chassis_width"    value="0.158"/>
+  <xacro:property name="chassis_height"   value="0.062"/>
+  <xacro:property name="ground_clearance" value="0.022"/>
 
-  <xacro:property name="chassis_mass"     value="6.0"/>
-  <xacro:property name="chassis_length"   value="${0.297 * body_scale}"/>
-  <xacro:property name="chassis_width"    value="${0.158 * body_scale}"/>
-  <xacro:property name="chassis_height"   value="${0.062 * body_scale}"/>
-  <xacro:property name="ground_clearance" value="${0.022 * body_scale}"/>
-
-  <xacro:property name="wheel_mass"       value="0.6"/>
-  <xacro:property name="wheel_radius"     value="${0.05 * body_scale}"/>
-  <xacro:property name="wheel_width"      value="${0.029 * body_scale}"/>
-  <xacro:property name="wheelbase"        value="${0.21 * body_scale}"/>
-  <xacro:property name="track_width"      value="${0.217 * body_scale}"/>
+  <xacro:property name="wheel_mass"       value="0.15"/>
+  <xacro:property name="wheel_radius"     value="0.05"/>
+  <xacro:property name="wheel_width"      value="0.029"/>
+  <xacro:property name="wheelbase"        value="0.21"/>
+  <xacro:property name="track_width"      value="0.217"/>
 
   <xacro:property name="steering_limit"    value="0.52"/>
   <xacro:property name="steering_effort"   value="10.0"/>
@@ -66,8 +63,8 @@
 
     <!-- Ma sát bánh dẫn động — cần cao để tạo lực đẩy robot -->
     <gazebo reference="${name}_wheel">
-      <mu>2.5</mu>
-      <mu2>2.5</mu2>
+      <mu>1.5</mu>
+      <mu2>1.5</mu2>
       <kp>1e6</kp>
       <kd>1.0</kd>
       <minDepth>0.001</minDepth>
@@ -121,8 +118,8 @@
 
     <!-- Ma sát bánh trước — đủ để giữ hướng, không quá cao -->
     <gazebo reference="front_${name}_wheel">
-      <mu>1.8</mu>
-      <mu2>1.2</mu2>
+      <mu>1.0</mu>
+      <mu2>0.5</mu2>
       <kp>1e6</kp>
       <kd>1.0</kd>
       <minDepth>0.001</minDepth>

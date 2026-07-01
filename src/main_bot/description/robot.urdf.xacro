@@ -7,4 +7,3 @@
     <xacro:include filename="imu.xacro"/>
 
 </robot>
-

@@ -49,22 +49,22 @@ def generate_launch_description():
         package='ros_gz_sim',
         executable='create',
         arguments=['-name', 'dvt_robot', '-topic', 'robot_description',
-                   '-x', '15', '-y', '-16.7', '-z', '0.1',
+                   '-x', '3.75', '-y', '-4.175', '-z', '0.025',
                    '-Y', '1.5708'],
         output='screen',
     )
 
-    # Cargo carts — one parked at each receiving dock (x=15/26.25/37.5, y=14).
+    # Cargo carts — one parked at each receiving dock (x=3.75/6.5625/9.375, y=3.5).
     # Passive props for now (free-rolling wheels, fixed hook) — no controller.
     # Facing south (-Y) so the front hook points into the room, toward the
     # aisle the robot approaches from.
-    cart_dock_positions = [('cart_1', 15.0), ('cart_2', 26.25), ('cart_3', 37.5)]
+    cart_dock_positions = [('cart_1', 3.75), ('cart_2', 6.5625), ('cart_3', 9.375)]
     cart_spawners = [
         Node(
             package='ros_gz_sim',
             executable='create',
             arguments=['-name', name, '-string', cart_description,
-                       '-x', str(x), '-y', '14', '-z', '0.1',
+                       '-x', str(x), '-y', '3.5', '-z', '0.025',
                        '-Y', '-1.5708'],
             output='screen',
         )
