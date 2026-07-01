@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<!--
+  cart.urdf.xacro — passive cargo cart (tow-behind bin)
+
+  Placed at each receiving dock for now (static prop, free-rolling wheels).
+  Later: robot backs up to the front hook and tows a full cart to Room A
+  (storage), then tows an empty one back to the dock to receive more goods.
+  No actuation/controller yet — wheels are unactuated continuous joints,
+  the hook is a fixed geometric coupling point (no physical latch yet).
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cargo_cart">
+
+  <xacro:include filename="inertial.xacro"/>
+
+  <!-- ─── Properties — footprint matches the robot's own chassis ─── -->
+  <xacro:property name="cart_length"        value="1.188"/>
+  <xacro:property name="cart_width"         value="0.632"/>
+  <xacro:property name="cart_height"        value="0.4"/>
+  <xacro:property name="cart_mass"          value="3.0"/>
+  <xacro:property name="cart_ground_clearance" value="0.03"/>
+
+  <xacro:property name="cwheel_radius"      value="0.15"/>
+  <xacro:property name="cwheel_width"       value="0.08"/>
+  <xacro:property name="cwheel_mass"        value="0.3"/>
+
+  <xacro:property name="cart_z_offset"  value="${cart_ground_clearance + cart_height/2}"/>
+  <xacro:property name="cwheel_z_offset" value="${cwheel_radius - cart_z_offset}"/>
+  <xacro:property name="cwheel_x"       value="${cart_length/2 - cwheel_radius}"/>
+  <xacro:property name="cwheel_y"       value="${cart_width/2 + cwheel_width/2}"/>
+
+  <material name="cart_yellow">
+    <color rgba="0.9 0.75 0.05 1.0"/>
+  </material>
+  <material name="cart_black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="cart_grey">
+    <color rgba="0.35 0.35 0.38 1.0"/>
+  </material>
+
+  <!-- ─── Body ─── -->
+  <link name="cart_footprint"/>
+
+  <link name="cart_body">
+    <visual>
+      <geometry>
+        <box size="${cart_length} ${cart_width} ${cart_height}"/>
+      </geometry>
+      <material name="cart_yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${cart_length} ${cart_width} ${cart_height}"/>
+      </geometry>
+    </collision>
+    <xacro:inertial_box mass="${cart_mass}" x="${cart_length}" y="${cart_width}" z="${cart_height}">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+
+  <gazebo reference="cart_body">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+
+  <joint name="cart_footprint_joint" type="fixed">
+    <parent link="cart_footprint"/>
+    <child  link="cart_body"/>
+    <origin xyz="0 0 ${cart_z_offset}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ─── Front tow hook — drawbar + coupling pin, fixed for now ─── -->
+  <link name="cart_hook">
+    <visual>
+      <origin xyz="0.2 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.06 0.04"/>
+      </geometry>
+      <material name="cart_grey"/>
+    </visual>
+    <visual>
+      <origin xyz="0.4 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.02" length="0.1"/>
+      </geometry>
+      <material name="cart_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0.2 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.06 0.04"/>
+      </geometry>
+    </collision>
+    <xacro:inertial_box mass="0.2" x="0.4" y="0.06" z="0.04">
+      <origin xyz="0.2 0 0" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+
+  <joint name="cart_hook_joint" type="fixed">
+    <parent link="cart_body"/>
+    <child  link="cart_hook"/>
+    <origin xyz="${cart_length/2} 0 ${-cart_height/2 + 0.08}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ─── Wheel macro — passive caster (unactuated, rolls freely) ─── -->
+  <xacro:macro name="cart_wheel" params="name x y">
+    <link name="${name}_wheel">
+      <visual>
+        <geometry>
+          <cylinder radius="${cwheel_radius}" length="${cwheel_width}"/>
+        </geometry>
+        <material name="cart_black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="${cwheel_radius}" length="${cwheel_width}"/>
+        </geometry>
+      </collision>
+      <xacro:inertial_cylinder mass="${cwheel_mass}" radius="${cwheel_radius}" length="${cwheel_width}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:inertial_cylinder>
+    </link>
+
+    <joint name="${name}_wheel_joint" type="continuous">
+      <parent link="cart_body"/>
+      <child  link="${name}_wheel"/>
+      <origin xyz="${x} ${y} ${cwheel_z_offset}" rpy="${-pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <gazebo reference="${name}_wheel">
+      <mu>1.2</mu>
+      <mu2>1.2</mu2>
+      <kp>1e6</kp>
+      <kd>1.0</kd>
+      <minDepth>0.001</minDepth>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:cart_wheel name="fl" x="${cwheel_x}"  y="${cwheel_y}"/>
+  <xacro:cart_wheel name="fr" x="${cwheel_x}"  y="${-cwheel_y}"/>
+  <xacro:cart_wheel name="rl" x="${-cwheel_x}" y="${cwheel_y}"/>
+  <xacro:cart_wheel name="rr" x="${-cwheel_x}" y="${-cwheel_y}"/>
+
+</robot>

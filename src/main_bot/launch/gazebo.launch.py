@@ -15,7 +15,9 @@ def generate_launch_description():
 
     xacro_file = os.path.join(pkg_path, 'description', 'robot.urdf.xacro')
     robot_description = xacro.process_file(xacro_file).toxml()
-    world_file    = os.path.join(pkg_path, 'worlds', 'world.sdf')
+    cart_xacro_file = os.path.join(pkg_path, 'description', 'cart.urdf.xacro')
+    cart_description = xacro.process_file(cart_xacro_file).toxml()
+    world_file    = os.path.join(pkg_path, 'worlds', 'warehouse.sdf')
     bridge_config = os.path.join(pkg_path, 'config', 'gz_bridge.yaml')
     ekf_params    = os.path.join(pkg_path, 'config', 'ekf.yaml')
 
@@ -47,9 +49,27 @@ def generate_launch_description():
         package='ros_gz_sim',
         executable='create',
         arguments=['-name', 'dvt_robot', '-topic', 'robot_description',
-                   '-x', '0', '-y', '0', '-z', '0.1'],
+                   '-x', '15', '-y', '-16.7', '-z', '0.1',
+                   '-Y', '1.5708'],
         output='screen',
     )
+
+    # Cargo carts — one parked at each receiving dock (x=15/26.25/37.5, y=14).
+    # Passive props for now (free-rolling wheels, fixed hook) — no controller.
+    # Facing south (-Y) so the front hook points into the room, toward the
+    # aisle the robot approaches from.
+    cart_dock_positions = [('cart_1', 15.0), ('cart_2', 26.25), ('cart_3', 37.5)]
+    cart_spawners = [
+        Node(
+            package='ros_gz_sim',
+            executable='create',
+            arguments=['-name', name, '-string', cart_description,
+                       '-x', str(x), '-y', '14', '-z', '0.1',
+                       '-Y', '-1.5708'],
+            output='screen',
+        )
+        for name, x in cart_dock_positions
+    ]
 
     jsb_spawner = Node(
         package='controller_manager',
@@ -96,9 +116,10 @@ def generate_launch_description():
         gz_sim,
         robot_state_publisher,
         bridge_node,
-        TimerAction(period=2.0, actions=[spawn_robot]),
-        TimerAction(period=5.0, actions=[jsb_spawner]),
-        TimerAction(period=7.0, actions=[asc_spawner]),
-        TimerAction(period=9.0, actions=[ekf_node]),
-        TimerAction(period=9.0, actions=[twist_stamper]),
+        TimerAction(period=6.0, actions=[spawn_robot]),
+        TimerAction(period=6.0, actions=cart_spawners),
+        TimerAction(period=10.0, actions=[jsb_spawner]),
+        TimerAction(period=12.0, actions=[asc_spawner]),
+        TimerAction(period=14.0, actions=[ekf_node]),
+        TimerAction(period=14.0, actions=[twist_stamper]),
     ])
