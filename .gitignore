@@ -5,6 +5,7 @@ log/
 
 # VSCode settings
 .vscode/
+.claude/
 
 __pycache__/
 *.pyc

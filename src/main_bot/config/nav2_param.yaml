@@ -186,7 +186,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.35
+        inflation_radius: 0.28   # was 0.35 — too big for the ×4-shrunk map, blocked planning near tight spots
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -240,7 +240,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.35   # >= robot_radius (0.22) + safety margin
+        inflation_radius: 0.28   # >= robot_radius (0.22); was 0.35, too big for the ×4-shrunk map
       always_send_full_costmap: True
 
 map_saver:

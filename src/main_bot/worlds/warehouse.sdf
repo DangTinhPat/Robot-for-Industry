@@ -3,23 +3,25 @@
   warehouse.sdf — Industrial Tow Vehicle Environment (LARGE SCALE)
   Gazebo Harmonic (SDF 1.9)
 
-  Layout (18.75m × 9m) — ×4 scale-down to match robot's original size,
-  same room split, same "A"/"B" floor labels, all detail kept 1:1:
-    ROOM A (storage)   x ∈ [-7.5, 1.875]:  6 rack rows at x=-6.75,-5.625,-4.5,-3.375,-2.25,-1.125 (N-S)
+  Layout (23.44m × 9m) — ×4 scale-down to match robot's original size,
+  then Room A stretched ×1.5 in X (rack spacing was too tight), pivoted
+  on the fixed A/B divider (x=1.875) so Room B didn't move at all:
+    ROOM A (storage)   x ∈ [-12.1875, 1.875]: 6 rack rows at x=-11.0625,-9.375,-7.6875,-6,-4.3125,-2.625 (N-S)
     ROOM B (transfer)  x ∈ [1.875, 11.25]: receiving + charging
       - 3 receiving docks on the NORTH wall, x=3.75 / 6.5625 / 9.375
       - Charging/docking bay on the SOUTH wall, x=3.75 (robot spawn) —
-        0.6×0.5m, sized to 2× the robot's own footprint (original scale)
+        0.8×0.6m, widened for Nav2 clearance (see note near the bay below)
     Main aisle    y ∈ [-1.125, 1.125]:  2.25m east-west corridor through both rooms
 
-  Rack rows (each split by cross-aisle y ∈ [-1.125,1.125]):
+  Rack rows (each split by cross-aisle y ∈ [-1.125,1.125]) — Y unchanged,
+  only X (row position/spacing) stretched ×1.5; rack size itself untouched:
     North half  center y= 2.25, length=3m  (y: 1.125→4.125)
     South half  center y=-2.25, length=3m  (y:-4.125→-1.125)
-    Row A x=-6.75   (dark indigo)     Row D x=-3.375  (orange)
-    Row B x=-5.625  (blue)            Row E x=-2.25   (purple)
-    Row C x=-4.5    (teal)            Row F x=-1.125  (green)
+    Row A x=-11.0625 (dark indigo)     Row D x=-6      (orange)
+    Row B x=-9.375   (blue)            Row E x=-4.3125 (purple)
+    Row C x=-7.6875  (teal)            Row F x=-2.625  (green)
 
-  Aisle clearance: 1.125m spacing – 0.375m rack = 0.75m  ✓ (Ackermann R_min=0.4m)
+  Aisle clearance: 1.6875m spacing – 0.375m rack = 1.3125m  ✓ (was 0.75m, ×1.5)
   Robot spawn: (3.75, -4.175, 0.025)  — on the charging pad, Room B south bay
 -->
 <sdf version="1.9">
@@ -142,14 +144,14 @@
     <!-- ═══ Ground — concrete ══════════════════════════════════════ -->
     <model name="ground_plane">
       <static>true</static>
-      <pose>1.875 0 0 0 0 0</pose>
+      <pose>-0.46875 0 0 0 0 0</pose>
       <link name="link">
         <collision name="col">
           <geometry><plane><normal>0 0 1</normal><size>50 50</size></plane></geometry>
           <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface>
         </collision>
         <visual name="vis">
-          <geometry><plane><normal>0 0 1</normal><size>19.5 9.5</size></plane></geometry>
+          <geometry><plane><normal>0 0 1</normal><size>24.1875 9.5</size></plane></geometry>
           <material>
             <ambient>0.55 0.55 0.55 1</ambient>
             <diffuse>0.55 0.55 0.55 1</diffuse>
@@ -158,30 +160,30 @@
       </link>
     </model>
 
-    <!-- ═══ PERIMETER WALLS (18.75×9m, 0.05m thick, 1.75m tall) ════ -->
+    <!-- ═══ PERIMETER WALLS (23.4375×9m, 0.05m thick, 1.75m tall) ══ -->
 
     <model name="wall_north"><static>true</static>
-      <pose>1.875 4.5 0.875 0 0 0</pose>
+      <pose>-0.46875 4.5 0.875 0 0 0</pose>
       <link name="link">
-        <collision name="col"><geometry><box><size>18.85 0.05 1.75</size></box></geometry></collision>
-        <visual name="vis"><geometry><box><size>18.85 0.05 1.75</size></box></geometry>
+        <collision name="col"><geometry><box><size>23.5375 0.05 1.75</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>23.5375 0.05 1.75</size></box></geometry>
           <material><ambient>0.72 0.72 0.70 1</ambient><diffuse>0.72 0.72 0.70 1</diffuse></material>
         </visual>
       </link>
     </model>
 
     <model name="wall_south"><static>true</static>
-      <pose>1.875 -4.5 0.875 0 0 0</pose>
+      <pose>-0.46875 -4.5 0.875 0 0 0</pose>
       <link name="link">
-        <collision name="col"><geometry><box><size>18.85 0.05 1.75</size></box></geometry></collision>
-        <visual name="vis"><geometry><box><size>18.85 0.05 1.75</size></box></geometry>
+        <collision name="col"><geometry><box><size>23.5375 0.05 1.75</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>23.5375 0.05 1.75</size></box></geometry>
           <material><ambient>0.72 0.72 0.70 1</ambient><diffuse>0.72 0.72 0.70 1</diffuse></material>
         </visual>
       </link>
     </model>
 
     <model name="wall_west"><static>true</static>
-      <pose>-7.5 0 0.875 0 0 0</pose>
+      <pose>-12.1875 0 0.875 0 0 0</pose>
       <link name="link">
         <collision name="col"><geometry><box><size>0.05 9.1 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.05 9.1 1.75</size></box></geometry>
@@ -235,42 +237,42 @@
 
     <!-- ═══ STRUCTURAL PILLARS (0.075×0.075×1.75m, dark steel) ═════ -->
 
-    <model name="pillar_1"><static>true</static><pose>-6.375 3.75 0.875 0 0 0</pose>
+    <model name="pillar_1"><static>true</static><pose>-10.5 3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_2"><static>true</static><pose>-6.375 -3.75 0.875 0 0 0</pose>
+    <model name="pillar_2"><static>true</static><pose>-10.5 -3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_3"><static>true</static><pose>-4.125 3.75 0.875 0 0 0</pose>
+    <model name="pillar_3"><static>true</static><pose>-7.125 3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_4"><static>true</static><pose>-4.125 -3.75 0.875 0 0 0</pose>
+    <model name="pillar_4"><static>true</static><pose>-7.125 -3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_5"><static>true</static><pose>-1.875 3.75 0.875 0 0 0</pose>
+    <model name="pillar_5"><static>true</static><pose>-3.75 3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_6"><static>true</static><pose>-1.875 -3.75 0.875 0 0 0</pose>
+    <model name="pillar_6"><static>true</static><pose>-3.75 -3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_7"><static>true</static><pose>0.375 3.75 0.875 0 0 0</pose>
+    <model name="pillar_7"><static>true</static><pose>-0.375 3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_8"><static>true</static><pose>0.375 -3.75 0.875 0 0 0</pose>
+    <model name="pillar_8"><static>true</static><pose>-0.375 -3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
@@ -285,12 +287,12 @@
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_11"><static>true</static><pose>-7.125 3.75 0.875 0 0 0</pose>
+    <model name="pillar_11"><static>true</static><pose>-11.625 3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
     </model>
-    <model name="pillar_12"><static>true</static><pose>-7.125 -3.75 0.875 0 0 0</pose>
+    <model name="pillar_12"><static>true</static><pose>-11.625 -3.75 0.875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.075 0.075 1.75</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.075 0.075 1.75</size></box></geometry>
           <material><ambient>0.42 0.42 0.46 1</ambient><diffuse>0.42 0.42 0.46 1</diffuse></material></visual></link>
@@ -302,76 +304,76 @@
         North half: center y= 2.25, extents y=[1.125, 3.375], length=2.25m (approach gap y:[3.375,4.5]=1.125m)
         South half: center y=-2.25, extents y=[-3.375, -1.125], length=2.25m
       Dimensions per section: 0.375(x) × 2.25(y) × 1.1(z) m, pose z=0.55
-      Row spacing (center-to-center): 1.125m  →  aisle clearance: 0.75m
+      Row spacing (center-to-center): 1.6875m  →  aisle clearance: 1.3125m
     -->
 
     <!-- Row A (x=-54, dark indigo) -->
-    <model name="rack_rA_n"><static>true</static><pose>-6.75 2.25 0.55 0 0 0</pose>
+    <model name="rack_rA_n"><static>true</static><pose>-11.0625 2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.15 0.18 0.55 1</ambient><diffuse>0.15 0.18 0.55 1</diffuse></material></visual></link>
     </model>
-    <model name="rack_rA_s"><static>true</static><pose>-6.75 -2.25 0.55 0 0 0</pose>
+    <model name="rack_rA_s"><static>true</static><pose>-11.0625 -2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.15 0.18 0.55 1</ambient><diffuse>0.15 0.18 0.55 1</diffuse></material></visual></link>
     </model>
 
     <!-- Row B (x=-45, blue) -->
-    <model name="rack_rB_n"><static>true</static><pose>-5.625 2.25 0.55 0 0 0</pose>
+    <model name="rack_rB_n"><static>true</static><pose>-9.375 2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.22 0.32 0.65 1</ambient><diffuse>0.22 0.32 0.65 1</diffuse></material></visual></link>
     </model>
-    <model name="rack_rB_s"><static>true</static><pose>-5.625 -2.25 0.55 0 0 0</pose>
+    <model name="rack_rB_s"><static>true</static><pose>-9.375 -2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.22 0.32 0.65 1</ambient><diffuse>0.22 0.32 0.65 1</diffuse></material></visual></link>
     </model>
 
     <!-- Row C (x=-36, teal) -->
-    <model name="rack_rC_n"><static>true</static><pose>-4.5 2.25 0.55 0 0 0</pose>
+    <model name="rack_rC_n"><static>true</static><pose>-7.6875 2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.12 0.55 0.60 1</ambient><diffuse>0.12 0.55 0.60 1</diffuse></material></visual></link>
     </model>
-    <model name="rack_rC_s"><static>true</static><pose>-4.5 -2.25 0.55 0 0 0</pose>
+    <model name="rack_rC_s"><static>true</static><pose>-7.6875 -2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.12 0.55 0.60 1</ambient><diffuse>0.12 0.55 0.60 1</diffuse></material></visual></link>
     </model>
 
     <!-- Row D (x=-27, orange) -->
-    <model name="rack_rD_n"><static>true</static><pose>-3.375 2.25 0.55 0 0 0</pose>
+    <model name="rack_rD_n"><static>true</static><pose>-6 2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.72 0.38 0.08 1</ambient><diffuse>0.72 0.38 0.08 1</diffuse></material></visual></link>
     </model>
-    <model name="rack_rD_s"><static>true</static><pose>-3.375 -2.25 0.55 0 0 0</pose>
+    <model name="rack_rD_s"><static>true</static><pose>-6 -2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.72 0.38 0.08 1</ambient><diffuse>0.72 0.38 0.08 1</diffuse></material></visual></link>
     </model>
 
     <!-- Row E (x=-18, purple) -->
-    <model name="rack_rE_n"><static>true</static><pose>-2.25 2.25 0.55 0 0 0</pose>
+    <model name="rack_rE_n"><static>true</static><pose>-4.3125 2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.58 0.18 0.65 1</ambient><diffuse>0.58 0.18 0.65 1</diffuse></material></visual></link>
     </model>
-    <model name="rack_rE_s"><static>true</static><pose>-2.25 -2.25 0.55 0 0 0</pose>
+    <model name="rack_rE_s"><static>true</static><pose>-4.3125 -2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.58 0.18 0.65 1</ambient><diffuse>0.58 0.18 0.65 1</diffuse></material></visual></link>
     </model>
 
     <!-- Row F (x=-9, green) -->
-    <model name="rack_rF_n"><static>true</static><pose>-1.125 2.25 0.55 0 0 0</pose>
+    <model name="rack_rF_n"><static>true</static><pose>-2.625 2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.18 0.52 0.22 1</ambient><diffuse>0.18 0.52 0.22 1</diffuse></material></visual></link>
     </model>
-    <model name="rack_rF_s"><static>true</static><pose>-1.125 -2.25 0.55 0 0 0</pose>
+    <model name="rack_rF_s"><static>true</static><pose>-2.625 -2.25 0.55 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.375 2.25 1.1</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.375 2.25 1.1</size></box></geometry>
           <material><ambient>0.18 0.52 0.22 1</ambient><diffuse>0.18 0.52 0.22 1</diffuse></material></visual></link>
@@ -419,31 +421,32 @@
     <!-- Moved out of Room A (west-wall bay) into Room B's south side, in line   -->
     <!-- with receiving dock 1 (x=3.75) up north — robot's home column runs     -->
     <!-- straight north-south through the middle of Room B.                    -->
-    <!-- Sized to the robot's original footprint (chassis 0.297×0.158m, track  -->
-    <!-- 0.217m) ≈ 0.31×0.246m (L×W). Docking pad = 2× that footprint =        -->
-    <!-- 0.6×0.5m. Whole map (incl. this bay) scaled ×4 down together so all   -->
-    <!-- proportions stay identical to before.                                -->
+    <!-- Widened vs. a strict 2×-footprint bay (0.5m) to 0.8m: at 0.5m wide the -->
+    <!-- walls sat only 0.28m from the pad center, tighter than Nav2's         -->
+    <!-- robot_radius(0.22)+inflation_radius — costmap saw the spawn point as  -->
+    <!-- "occupied" and the planner refused every goal. 0.8m gives 0.39m of    -->
+    <!-- clearance to each wall, comfortably outside the inflation zone.      -->
 
-    <model name="chrg_wall_w"><static>true</static><pose>3.46 -4.175 0.15 0 0 0</pose>
+    <model name="chrg_wall_w"><static>true</static><pose>3.34 -4.175 0.15 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.08 0.6 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.08 0.6 0.3</size></box></geometry>
           <material><ambient>0.85 0.75 0.05 1</ambient><diffuse>0.85 0.75 0.05 1</diffuse></material></visual></link>
     </model>
-    <model name="chrg_wall_e"><static>true</static><pose>4.04 -4.175 0.15 0 0 0</pose>
+    <model name="chrg_wall_e"><static>true</static><pose>4.16 -4.175 0.15 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.08 0.6 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.08 0.6 0.3</size></box></geometry>
           <material><ambient>0.85 0.75 0.05 1</ambient><diffuse>0.85 0.75 0.05 1</diffuse></material></visual></link>
     </model>
-    <!-- Charging pad (green), 2× robot footprint -->
+    <!-- Charging pad (green), widened for Nav2 clearance (see note above) -->
     <model name="chrg_pad"><static>true</static><pose>3.75 -4.175 0.00025 0 0 0</pose>
       <link name="link">
-        <visual name="vis"><geometry><box><size>0.5 0.6 0.0005</size></box></geometry>
+        <visual name="vis"><geometry><box><size>0.8 0.6 0.0005</size></box></geometry>
           <material><ambient>0.5 0.88 0.1 1</ambient><diffuse>0.5 0.88 0.1 1</diffuse></material></visual></link>
     </model>
     <!-- Bay entrance floor marking (yellow strip, at the room-facing mouth) -->
     <model name="chrg_entry_mark"><static>true</static><pose>3.75 -3.855 0.00025 0 0 0</pose>
       <link name="link">
-        <visual name="vis"><geometry><box><size>0.5 0.04 0.0005</size></box></geometry>
+        <visual name="vis"><geometry><box><size>0.8 0.04 0.0005</size></box></geometry>
           <material><ambient>0.85 0.75 0.05 1</ambient><diffuse>0.85 0.75 0.05 1</diffuse></material></visual></link>
     </model>
 
@@ -461,43 +464,43 @@
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
     <!-- Cross-aisle entrances — Row A -->
-    <model name="boll_rA_nw"><static>true</static><pose>-6.975 1.2 0.2 0 0 0</pose>
+    <model name="boll_rA_nw"><static>true</static><pose>-11.4 1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="boll_rA_sw"><static>true</static><pose>-6.975 -1.2 0.2 0 0 0</pose>
+    <model name="boll_rA_sw"><static>true</static><pose>-11.4 -1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="boll_rA_ne"><static>true</static><pose>-6.525 1.2 0.2 0 0 0</pose>
+    <model name="boll_rA_ne"><static>true</static><pose>-10.725 1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="boll_rA_se"><static>true</static><pose>-6.525 -1.2 0.2 0 0 0</pose>
+    <model name="boll_rA_se"><static>true</static><pose>-10.725 -1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
     <!-- Cross-aisle entrances — Row D -->
-    <model name="boll_rD_nw"><static>true</static><pose>-3.6 1.2 0.2 0 0 0</pose>
+    <model name="boll_rD_nw"><static>true</static><pose>-6.3375 1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="boll_rD_sw"><static>true</static><pose>-3.6 -1.2 0.2 0 0 0</pose>
+    <model name="boll_rD_sw"><static>true</static><pose>-6.3375 -1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="boll_rD_ne"><static>true</static><pose>-3.15 1.2 0.2 0 0 0</pose>
+    <model name="boll_rD_ne"><static>true</static><pose>-5.6625 1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="boll_rD_se"><static>true</static><pose>-3.15 -1.2 0.2 0 0 0</pose>
+    <model name="boll_rD_se"><static>true</static><pose>-5.6625 -1.2 0.2 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.01875</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material></visual></link>
@@ -507,58 +510,58 @@
     <!-- Pallet: 0.15×0.1×0.0375m. Box: 0.1×0.075×0.125m -->
 
     <!-- SW staging zone -->
-    <model name="pallet_1"><static>true</static><pose>-6.75 -2.625 0.01875 0 0 0</pose>
+    <model name="pallet_1"><static>true</static><pose>-11.0625 -2.625 0.01875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry>
           <material><ambient>0.55 0.37 0.16 1</ambient><diffuse>0.55 0.37 0.16 1</diffuse></material></visual></link>
     </model>
-    <model name="box_1"><static>true</static><pose>-6.75 -2.625 0.1 0 0 0</pose>
+    <model name="box_1"><static>true</static><pose>-11.0625 -2.625 0.1 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.1 0.075 0.125</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.1 0.075 0.125</size></box></geometry>
           <material><ambient>0.68 0.18 0.18 1</ambient><diffuse>0.68 0.18 0.18 1</diffuse></material></visual></link>
     </model>
 
-    <model name="pallet_2"><static>true</static><pose>-6.75 -1.875 0.01875 0 0 0</pose>
+    <model name="pallet_2"><static>true</static><pose>-11.0625 -1.875 0.01875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry>
           <material><ambient>0.55 0.37 0.16 1</ambient><diffuse>0.55 0.37 0.16 1</diffuse></material></visual></link>
     </model>
-    <model name="box_2"><static>true</static><pose>-6.75 -1.875 0.1 0 0 0</pose>
+    <model name="box_2"><static>true</static><pose>-11.0625 -1.875 0.1 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.1 0.075 0.125</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.1 0.075 0.125</size></box></geometry>
           <material><ambient>0.68 0.18 0.18 1</ambient><diffuse>0.68 0.18 0.18 1</diffuse></material></visual></link>
     </model>
 
     <!-- NW staging zone -->
-    <model name="pallet_3"><static>true</static><pose>-6.75 2.625 0.01875 0 0 0</pose>
+    <model name="pallet_3"><static>true</static><pose>-11.0625 2.625 0.01875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry>
           <material><ambient>0.55 0.37 0.16 1</ambient><diffuse>0.55 0.37 0.16 1</diffuse></material></visual></link>
     </model>
-    <model name="box_3"><static>true</static><pose>-6.75 2.625 0.1 0 0 0</pose>
+    <model name="box_3"><static>true</static><pose>-11.0625 2.625 0.1 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.1 0.075 0.125</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.1 0.075 0.125</size></box></geometry>
           <material><ambient>0.18 0.28 0.72 1</ambient><diffuse>0.18 0.28 0.72 1</diffuse></material></visual></link>
     </model>
 
     <!-- Mid-storage staging pallets -->
-    <model name="pallet_4"><static>true</static><pose>-3.75 3.375 0.01875 0 0 0</pose>
+    <model name="pallet_4"><static>true</static><pose>-6.5625 3.375 0.01875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry>
           <material><ambient>0.55 0.37 0.16 1</ambient><diffuse>0.55 0.37 0.16 1</diffuse></material></visual></link>
     </model>
-    <model name="box_4"><static>true</static><pose>-3.75 3.375 0.1 0 0 0</pose>
+    <model name="box_4"><static>true</static><pose>-6.5625 3.375 0.1 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.1 0.075 0.125</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.1 0.075 0.125</size></box></geometry>
           <material><ambient>0.18 0.55 0.22 1</ambient><diffuse>0.18 0.55 0.22 1</diffuse></material></visual></link>
     </model>
 
-    <model name="pallet_5"><static>true</static><pose>-3.75 -3.375 0.01875 0 0 0</pose>
+    <model name="pallet_5"><static>true</static><pose>-6.5625 -3.375 0.01875 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.1 0.0375</size></box></geometry>
           <material><ambient>0.55 0.37 0.16 1</ambient><diffuse>0.55 0.37 0.16 1</diffuse></material></visual></link>
     </model>
-    <model name="box_5"><static>true</static><pose>-3.75 -3.375 0.1 0 0 0</pose>
+    <model name="box_5"><static>true</static><pose>-6.5625 -3.375 0.1 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.1 0.075 0.125</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.1 0.075 0.125</size></box></geometry>
           <material><ambient>0.18 0.55 0.22 1</ambient><diffuse>0.18 0.55 0.22 1</diffuse></material></visual></link>
@@ -571,24 +574,24 @@
     <!-- ═══ PICKUP / DROPOFF STATION MARKERS (0.375×0.375×0.015m) — Room A only ═══ -->
 
     <!-- Stations A & B: west staging (cyan) -->
-    <model name="station_A"><static>true</static><pose>-6.75 -0.75 0.00025 0 0 0</pose>
+    <model name="station_A"><static>true</static><pose>-11.0625 -0.75 0.00025 0 0 0</pose>
       <link name="link">
         <visual name="vis"><geometry><box><size>0.375 0.375 0.0005</size></box></geometry>
           <material><ambient>0.0 0.72 0.9 1</ambient><diffuse>0.0 0.72 0.9 1</diffuse></material></visual></link>
     </model>
-    <model name="station_B"><static>true</static><pose>-6.75 0.75 0.00025 0 0 0</pose>
+    <model name="station_B"><static>true</static><pose>-11.0625 0.75 0.00025 0 0 0</pose>
       <link name="link">
         <visual name="vis"><geometry><box><size>0.375 0.375 0.0005</size></box></geometry>
           <material><ambient>0.0 0.72 0.9 1</ambient><diffuse>0.0 0.72 0.9 1</diffuse></material></visual></link>
     </model>
 
     <!-- Stations C & D: mid-storage staging (orange) -->
-    <model name="station_C"><static>true</static><pose>-3.75 -0.75 0.00025 0 0 0</pose>
+    <model name="station_C"><static>true</static><pose>-6.5625 -0.75 0.00025 0 0 0</pose>
       <link name="link">
         <visual name="vis"><geometry><box><size>0.375 0.375 0.0005</size></box></geometry>
           <material><ambient>0.9 0.55 0.0 1</ambient><diffuse>0.9 0.55 0.0 1</diffuse></material></visual></link>
     </model>
-    <model name="station_D"><static>true</static><pose>-3.75 0.75 0.00025 0 0 0</pose>
+    <model name="station_D"><static>true</static><pose>-6.5625 0.75 0.00025 0 0 0</pose>
       <link name="link">
         <visual name="vis"><geometry><box><size>0.375 0.375 0.0005</size></box></geometry>
           <material><ambient>0.9 0.55 0.0 1</ambient><diffuse>0.9 0.55 0.0 1</diffuse></material></visual></link>
@@ -598,154 +601,154 @@
     <!-- Two protruding horizontal shelf edges per section (z=0.375 / z=0.825), -->
     <!-- lighter metal-gray, so each rack reads as tiered shelving.           -->
 
-    <model name="shelf_rA_n_lo"><static>true</static><pose>-6.75 2.25 0.375 0 0 0</pose>
+    <model name="shelf_rA_n_lo"><static>true</static><pose>-11.0625 2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rA_n_hi"><static>true</static><pose>-6.75 2.25 0.825 0 0 0</pose>
+    <model name="shelf_rA_n_hi"><static>true</static><pose>-11.0625 2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rA_s_lo"><static>true</static><pose>-6.75 -2.25 0.375 0 0 0</pose>
+    <model name="shelf_rA_s_lo"><static>true</static><pose>-11.0625 -2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rA_s_hi"><static>true</static><pose>-6.75 -2.25 0.825 0 0 0</pose>
+    <model name="shelf_rA_s_hi"><static>true</static><pose>-11.0625 -2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rB_n_lo"><static>true</static><pose>-5.625 2.25 0.375 0 0 0</pose>
+    <model name="shelf_rB_n_lo"><static>true</static><pose>-9.375 2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rB_n_hi"><static>true</static><pose>-5.625 2.25 0.825 0 0 0</pose>
+    <model name="shelf_rB_n_hi"><static>true</static><pose>-9.375 2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rB_s_lo"><static>true</static><pose>-5.625 -2.25 0.375 0 0 0</pose>
+    <model name="shelf_rB_s_lo"><static>true</static><pose>-9.375 -2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rB_s_hi"><static>true</static><pose>-5.625 -2.25 0.825 0 0 0</pose>
+    <model name="shelf_rB_s_hi"><static>true</static><pose>-9.375 -2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rC_n_lo"><static>true</static><pose>-4.5 2.25 0.375 0 0 0</pose>
+    <model name="shelf_rC_n_lo"><static>true</static><pose>-7.6875 2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rC_n_hi"><static>true</static><pose>-4.5 2.25 0.825 0 0 0</pose>
+    <model name="shelf_rC_n_hi"><static>true</static><pose>-7.6875 2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rC_s_lo"><static>true</static><pose>-4.5 -2.25 0.375 0 0 0</pose>
+    <model name="shelf_rC_s_lo"><static>true</static><pose>-7.6875 -2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rC_s_hi"><static>true</static><pose>-4.5 -2.25 0.825 0 0 0</pose>
+    <model name="shelf_rC_s_hi"><static>true</static><pose>-7.6875 -2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rD_n_lo"><static>true</static><pose>-3.375 2.25 0.375 0 0 0</pose>
+    <model name="shelf_rD_n_lo"><static>true</static><pose>-6 2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rD_n_hi"><static>true</static><pose>-3.375 2.25 0.825 0 0 0</pose>
+    <model name="shelf_rD_n_hi"><static>true</static><pose>-6 2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rD_s_lo"><static>true</static><pose>-3.375 -2.25 0.375 0 0 0</pose>
+    <model name="shelf_rD_s_lo"><static>true</static><pose>-6 -2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rD_s_hi"><static>true</static><pose>-3.375 -2.25 0.825 0 0 0</pose>
+    <model name="shelf_rD_s_hi"><static>true</static><pose>-6 -2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rE_n_lo"><static>true</static><pose>-2.25 2.25 0.375 0 0 0</pose>
+    <model name="shelf_rE_n_lo"><static>true</static><pose>-4.3125 2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rE_n_hi"><static>true</static><pose>-2.25 2.25 0.825 0 0 0</pose>
+    <model name="shelf_rE_n_hi"><static>true</static><pose>-4.3125 2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rE_s_lo"><static>true</static><pose>-2.25 -2.25 0.375 0 0 0</pose>
+    <model name="shelf_rE_s_lo"><static>true</static><pose>-4.3125 -2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rE_s_hi"><static>true</static><pose>-2.25 -2.25 0.825 0 0 0</pose>
+    <model name="shelf_rE_s_hi"><static>true</static><pose>-4.3125 -2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rF_n_lo"><static>true</static><pose>-1.125 2.25 0.375 0 0 0</pose>
+    <model name="shelf_rF_n_lo"><static>true</static><pose>-2.625 2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rF_n_hi"><static>true</static><pose>-1.125 2.25 0.825 0 0 0</pose>
+    <model name="shelf_rF_n_hi"><static>true</static><pose>-2.625 2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rF_s_lo"><static>true</static><pose>-1.125 -2.25 0.375 0 0 0</pose>
+    <model name="shelf_rF_s_lo"><static>true</static><pose>-2.625 -2.25 0.375 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
-    <model name="shelf_rF_s_hi"><static>true</static><pose>-1.125 -2.25 0.825 0 0 0</pose>
+    <model name="shelf_rF_s_hi"><static>true</static><pose>-2.625 -2.25 0.825 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.425 2.325 0.02</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.425 2.325 0.02</size></box></geometry>
           <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual></link>
     </model>
 
     <!-- ═══ RACK ROW ID SIGNS — south end-cap plaques, color-matched ═══ -->
-    <model name="sign_row_A"><static>true</static><pose>-6.75 -3.575 0.25 0 0 0</pose>
+    <model name="sign_row_A"><static>true</static><pose>-11.0625 -3.575 0.25 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry>
           <material><ambient>0.15 0.18 0.55 1</ambient><diffuse>0.15 0.18 0.55 1</diffuse></material></visual></link>
     </model>
-    <model name="sign_row_B"><static>true</static><pose>-5.625 -3.575 0.25 0 0 0</pose>
+    <model name="sign_row_B"><static>true</static><pose>-9.375 -3.575 0.25 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry>
           <material><ambient>0.22 0.32 0.65 1</ambient><diffuse>0.22 0.32 0.65 1</diffuse></material></visual></link>
     </model>
-    <model name="sign_row_C"><static>true</static><pose>-4.5 -3.575 0.25 0 0 0</pose>
+    <model name="sign_row_C"><static>true</static><pose>-7.6875 -3.575 0.25 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry>
           <material><ambient>0.12 0.55 0.60 1</ambient><diffuse>0.12 0.55 0.60 1</diffuse></material></visual></link>
     </model>
-    <model name="sign_row_D"><static>true</static><pose>-3.375 -3.575 0.25 0 0 0</pose>
+    <model name="sign_row_D"><static>true</static><pose>-6 -3.575 0.25 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry>
           <material><ambient>0.72 0.38 0.08 1</ambient><diffuse>0.72 0.38 0.08 1</diffuse></material></visual></link>
     </model>
-    <model name="sign_row_E"><static>true</static><pose>-2.25 -3.575 0.25 0 0 0</pose>
+    <model name="sign_row_E"><static>true</static><pose>-4.3125 -3.575 0.25 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry>
           <material><ambient>0.58 0.18 0.65 1</ambient><diffuse>0.58 0.18 0.65 1</diffuse></material></visual></link>
     </model>
-    <model name="sign_row_F"><static>true</static><pose>-1.125 -3.575 0.25 0 0 0</pose>
+    <model name="sign_row_F"><static>true</static><pose>-2.625 -3.575 0.25 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.15 0.0375 0.3</size></box></geometry>
           <material><ambient>0.18 0.52 0.22 1</ambient><diffuse>0.18 0.52 0.22 1</diffuse></material></visual></link>
@@ -961,119 +964,119 @@
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
 
-    <model name="compass_west_plate"><static>true</static><pose>-7.45 -2.5 1 0 0 0</pose>
+    <model name="compass_west_plate"><static>true</static><pose>-12.1125 -2.5 1 0 0 0</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.0075 0.1375 0.1375</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.0075 0.1375 0.1375</size></box></geometry>
           <material><ambient>0.15 0.15 0.17 1</ambient><diffuse>0.15 0.15 0.17 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px1"><static>true</static><pose>-7.4375 -2.545 1.045 0 0 0</pose>
+    <model name="compass_west_px1"><static>true</static><pose>-12.09375 -2.545 1.045 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px2"><static>true</static><pose>-7.4375 -2.455 1.045 0 0 0</pose>
+    <model name="compass_west_px2"><static>true</static><pose>-12.09375 -2.455 1.045 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px3"><static>true</static><pose>-7.4375 -2.545 1.0225 0 0 0</pose>
+    <model name="compass_west_px3"><static>true</static><pose>-12.09375 -2.545 1.0225 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px4"><static>true</static><pose>-7.4375 -2.455 1.0225 0 0 0</pose>
+    <model name="compass_west_px4"><static>true</static><pose>-12.09375 -2.455 1.0225 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px5"><static>true</static><pose>-7.4375 -2.545 1 0 0 0</pose>
+    <model name="compass_west_px5"><static>true</static><pose>-12.09375 -2.545 1 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px6"><static>true</static><pose>-7.4375 -2.5 1 0 0 0</pose>
+    <model name="compass_west_px6"><static>true</static><pose>-12.09375 -2.5 1 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px7"><static>true</static><pose>-7.4375 -2.455 1 0 0 0</pose>
+    <model name="compass_west_px7"><static>true</static><pose>-12.09375 -2.455 1 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px8"><static>true</static><pose>-7.4375 -2.545 0.9775 0 0 0</pose>
+    <model name="compass_west_px8"><static>true</static><pose>-12.09375 -2.545 0.9775 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px9"><static>true</static><pose>-7.4375 -2.5225 0.9775 0 0 0</pose>
+    <model name="compass_west_px9"><static>true</static><pose>-12.09375 -2.5225 0.9775 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px10"><static>true</static><pose>-7.4375 -2.4775 0.9775 0 0 0</pose>
+    <model name="compass_west_px10"><static>true</static><pose>-12.09375 -2.4775 0.9775 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px11"><static>true</static><pose>-7.4375 -2.455 0.9775 0 0 0</pose>
+    <model name="compass_west_px11"><static>true</static><pose>-12.09375 -2.455 0.9775 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px12"><static>true</static><pose>-7.4375 -2.545 0.955 0 0 0</pose>
+    <model name="compass_west_px12"><static>true</static><pose>-12.09375 -2.545 0.955 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
-    <model name="compass_west_px13"><static>true</static><pose>-7.4375 -2.455 0.955 0 0 0</pose>
+    <model name="compass_west_px13"><static>true</static><pose>-12.09375 -2.455 0.955 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.005 0.0175 0.0175</size></box></geometry>
           <material><ambient>0.95 0.85 0.1 1</ambient><diffuse>0.95 0.85 0.1 1</diffuse></material></visual></link>
     </model>
     <!-- ═══ ROOM LABELS — floor-painted "A" / "B", flush & color-only ═══ -->
     <!-- Room A = storage (racks). Room B = transfer (receiving + charging). -->
 
-    <model name="room_label_A_px1"><static>true</static><pose>-3.0625 0.5 0.00025 0 0 0</pose>
+    <model name="room_label_A_px1"><static>true</static><pose>-5.53125 0.5 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px2"><static>true</static><pose>-2.8125 0.5 0.00025 0 0 0</pose>
+    <model name="room_label_A_px2"><static>true</static><pose>-5.15625 0.5 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px3"><static>true</static><pose>-2.5625 0.5 0.00025 0 0 0</pose>
+    <model name="room_label_A_px3"><static>true</static><pose>-4.78125 0.5 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px4"><static>true</static><pose>-3.3125 0.25 0.00025 0 0 0</pose>
+    <model name="room_label_A_px4"><static>true</static><pose>-5.90625 0.25 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px5"><static>true</static><pose>-2.3125 0.25 0.00025 0 0 0</pose>
+    <model name="room_label_A_px5"><static>true</static><pose>-4.40625 0.25 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px6"><static>true</static><pose>-3.3125 0 0.00025 0 0 0</pose>
+    <model name="room_label_A_px6"><static>true</static><pose>-5.90625 0 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px7"><static>true</static><pose>-3.0625 0 0.00025 0 0 0</pose>
+    <model name="room_label_A_px7"><static>true</static><pose>-5.53125 0 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px8"><static>true</static><pose>-2.8125 0 0.00025 0 0 0</pose>
+    <model name="room_label_A_px8"><static>true</static><pose>-5.15625 0 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px9"><static>true</static><pose>-2.5625 0 0.00025 0 0 0</pose>
+    <model name="room_label_A_px9"><static>true</static><pose>-4.78125 0 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px10"><static>true</static><pose>-2.3125 0 0.00025 0 0 0</pose>
+    <model name="room_label_A_px10"><static>true</static><pose>-4.40625 0 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px11"><static>true</static><pose>-3.3125 -0.25 0.00025 0 0 0</pose>
+    <model name="room_label_A_px11"><static>true</static><pose>-5.90625 -0.25 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px12"><static>true</static><pose>-2.3125 -0.25 0.00025 0 0 0</pose>
+    <model name="room_label_A_px12"><static>true</static><pose>-4.40625 -0.25 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px13"><static>true</static><pose>-3.3125 -0.5 0.00025 0 0 0</pose>
+    <model name="room_label_A_px13"><static>true</static><pose>-5.90625 -0.5 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
-    <model name="room_label_A_px14"><static>true</static><pose>-2.3125 -0.5 0.00025 0 0 0</pose>
+    <model name="room_label_A_px14"><static>true</static><pose>-4.40625 -0.5 0.00025 0 0 0</pose>
       <link name="link"><visual name="vis"><geometry><box><size>0.225 0.225 0.0005</size></box></geometry>
           <material><ambient>0.15 0.35 0.75 1</ambient><diffuse>0.15 0.35 0.75 1</diffuse></material></visual></link>
     </model>
@@ -1145,24 +1148,24 @@
     <!-- ═══ EXTRA DETAIL — added after halving the footprint ═════════ -->
 
     <!-- Main aisle centerline stripe (painted floor line, y=0) -->
-    <model name="aisle_centerline"><static>true</static><pose>0 0 0.00025 0 0 0</pose>
+    <model name="aisle_centerline"><static>true</static><pose>-2.34375 0 0.00025 0 0 0</pose>
       <link name="link">
-        <visual name="vis"><geometry><box><size>14.5 0.025 0.0005</size></box></geometry>
+        <visual name="vis"><geometry><box><size>19.1875 0.025 0.0005</size></box></geometry>
           <material><ambient>0.85 0.75 0.05 1</ambient><diffuse>0.85 0.75 0.05 1</diffuse></material></visual></link>
     </model>
 
     <!-- Stacked crates on top of existing cargo boxes — extra vertical detail -->
-    <model name="crate_extra_1"><static>true</static><pose>-6.75 -2.625 0.195 0 0 0.3</pose>
+    <model name="crate_extra_1"><static>true</static><pose>-11.0625 -2.625 0.195 0 0 0.3</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.07 0.055 0.07</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.07 0.055 0.07</size></box></geometry>
           <material><ambient>0.75 0.65 0.15 1</ambient><diffuse>0.75 0.65 0.15 1</diffuse></material></visual></link>
     </model>
-    <model name="crate_extra_2"><static>true</static><pose>-6.75 2.625 0.195 0 0 -0.2</pose>
+    <model name="crate_extra_2"><static>true</static><pose>-11.0625 2.625 0.195 0 0 -0.2</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.07 0.055 0.07</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.07 0.055 0.07</size></box></geometry>
           <material><ambient>0.3 0.42 0.2 1</ambient><diffuse>0.3 0.42 0.2 1</diffuse></material></visual></link>
     </model>
-    <model name="crate_extra_3"><static>true</static><pose>-3.75 -3.375 0.195 0 0 0.15</pose>
+    <model name="crate_extra_3"><static>true</static><pose>-6.5625 -3.375 0.195 0 0 0.15</pose>
       <link name="link"><collision name="col"><geometry><box><size>0.07 0.055 0.07</size></box></geometry></collision>
         <visual name="vis"><geometry><box><size>0.07 0.055 0.07</size></box></geometry>
           <material><ambient>0.6 0.3 0.3 1</ambient><diffuse>0.6 0.3 0.3 1</diffuse></material></visual></link>
