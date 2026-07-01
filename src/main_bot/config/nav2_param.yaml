@@ -1,9 +1,9 @@
 amcl:
   ros__parameters:
-    alpha1: 0.2
+    alpha1: 0.4  # was 0.2 — nhiễu xoay-do-xoay: bớt tin odometry lúc robot rẽ/xoay, để lidar kéo về đúng vị trí nhanh hơn
     alpha2: 0.2
     alpha3: 0.2
-    alpha4: 0.2
+    alpha4: 0.4  # was 0.2 — nhiễu vị trí-do-xoay: cùng lý do, quan trọng nhất lúc maneuver khó (lùi-tiến, rẽ gấp)
     alpha5: 0.2
     base_frame_id: "base_footprint"
     beam_skip_distance: 0.5
@@ -29,9 +29,9 @@ amcl:
     save_pose_rate: 0.5
     sigma_hit: 0.2
     tf_broadcast: true
-    transform_tolerance: 1.0
-    update_min_a: 0.2
-    update_min_d: 0.25
+    transform_tolerance: 0.3  # was 1.0 — tolerance quá cao khiến TF cũ được coi là hợp lệ lâu, khi có update mới thì nhảy 1 phát lớn thay vì mượt
+    update_min_a: 0.1         # was 0.2 — cập nhật thường xuyên hơn, mỗi lần sửa nhỏ hơn thay vì thưa + giật
+    update_min_d: 0.1         # was 0.25
     z_hit: 0.5
     z_max: 0.05
     z_rand: 0.5
@@ -135,7 +135,7 @@ controller_server:
       PreferForwardCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 5.0
+        cost_weight: 1.0          # thử nghiệm: giảm từ 5.0 — nghi đây là critic thực sự khiến MPPI né lùi lúc THỰC THI, tách biệt với reverse_penalty của planner (chỉ ảnh hưởng lúc VẼ đường)
         threshold_to_consider: 0.5
       CostCritic:
         enabled: true

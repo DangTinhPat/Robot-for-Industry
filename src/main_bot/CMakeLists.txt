@@ -31,6 +31,7 @@ install(
 install(
   PROGRAMS
     scripts/odom_tf_relay.py
+    scripts/dock_to_charge.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
