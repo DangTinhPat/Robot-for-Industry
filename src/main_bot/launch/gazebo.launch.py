@@ -54,10 +54,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Cargo carts — one parked at each receiving dock (x=3.75/6.5625/9.375, y=3.5).
-    # Passive props for now (free-rolling wheels, fixed hook) — no controller.
-    # Facing south (-Y) so the front hook points into the room, toward the
-    # aisle the robot approaches from.
     cart_dock_positions = [('cart_1', 3.75), ('cart_2', 6.5625), ('cart_3', 9.375)]
     cart_spawners = [
         Node(
@@ -96,11 +92,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Teleop: Twist → TwistStamped cho ackermann_steering_controller
-    # Subscribe /teleop_cmd_vel (KHÔNG phải /cmd_vel) để tránh conflict với
-    # ackermann_transform_node khi chạy Nav2 (cả hai đều publish lên /reference).
-    # Dùng: ros2 run teleop_twist_keyboard teleop_twist_keyboard \
-    #         --ros-args -r cmd_vel:=/teleop_cmd_vel
     twist_stamper = Node(
         package='twist_stamper',
         executable='twist_stamper',
@@ -109,6 +100,18 @@ def generate_launch_description():
             ('cmd_vel_in',  '/teleop_cmd_vel'),
             ('cmd_vel_out', '/ackermann_steering_controller/reference'),
         ],
+        output='screen',
+    )
+
+    # Giả lập phần cứng UWB: tính range robot↔anchor từ ground-truth pose
+    # (bridge /ground_truth/poses) → publish /uwb/range_*. Luôn chạy như
+    # 1 sensor thật; phần định vị nằm ở nav2_uwb.launch.py.
+    uwb_params = os.path.join(pkg_path, 'config', 'uwb.yaml')
+    uwb_sim_node = Node(
+        package='main_bot',
+        executable='uwb_sim_node.py',
+        name='uwb_sim_node',
+        parameters=[uwb_params, {'use_sim_time': True}],
         output='screen',
     )
 
@@ -122,4 +125,5 @@ def generate_launch_description():
         TimerAction(period=12.0, actions=[asc_spawner]),
         TimerAction(period=14.0, actions=[ekf_node]),
         TimerAction(period=14.0, actions=[twist_stamper]),
+        TimerAction(period=8.0,  actions=[uwb_sim_node]),
     ])

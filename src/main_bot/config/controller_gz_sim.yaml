@@ -30,8 +30,19 @@ ackermann_steering_controller:
     # Odometry
     odom_frame_id: odom
     base_frame_id: base_footprint
-    enable_odom_tf: true
+    # false: EKF (ekf.yaml) là nguồn DUY NHẤT của TF odom→base_footprint.
+    # true sẽ tạo 2 nguồn TF đánh nhau (controller vs EKF) → pose robot
+    # nhấp nháy/rung loạn trong RViz và Nav2.
+    enable_odom_tf: false
     open_loop: false        # Dùng actual joint velocity từ Gazebo, không phải commanded
     position_feedback: false  # Đọc velocity state interface (phù hợp với velocity command joints)
+
+    # Covariance thật thay cho placeholder mặc định [0,7,14,21,28,35] của
+    # steering_controllers_library (vx var=0 → EKF tin tuyệt đối; vy var=7
+    # → ràng buộc không-trượt-ngang vô dụng, làm pose rung theo nhiễu UWB).
+    #                          x     y     z    roll  pitch  yaw
+    pose_covariance_diagonal:  [0.01, 0.01, 1000.0, 1000.0, 1000.0, 0.1]
+    #                          vx      vy      vz     vr      vp     vyaw
+    twist_covariance_diagonal: [0.0004, 0.0001, 1000.0, 1000.0, 1000.0, 0.01]
 
     reference_timeout: 0.5

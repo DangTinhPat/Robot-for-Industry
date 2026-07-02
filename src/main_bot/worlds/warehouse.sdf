@@ -1193,5 +1193,58 @@
           <material><ambient>0.9 0.35 0.05 1</ambient><diffuse>0.9 0.35 0.05 1</diffuse></material></visual></link>
     </model>
 
+    <!-- ═══ UWB ANCHORS (6 trạm, gắn cao trên tường z=1.6m) ═══════════
+         Tọa độ PHẢI khớp config/uwb.yaml (anchors_world).
+         Visual-only (hộp xanh lá + anten) — không collision, robot 0.1m
+         cao không bao giờ chạm tới z=1.6m. -->
+    <model name="uwb_anchor_0"><static>true</static><pose>-11.9 -4.2 1.6 0 0 0</pose>
+      <link name="link">
+        <visual name="box"><geometry><box><size>0.12 0.08 0.06</size></box></geometry>
+          <material><ambient>0.1 0.9 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse><emissive>0.05 0.4 0.1 1</emissive></material></visual>
+        <visual name="ant"><pose>0 0 0.08 0 0 0</pose><geometry><cylinder><radius>0.006</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="uwb_anchor_1"><static>true</static><pose>-11.9 4.2 1.6 0 0 0</pose>
+      <link name="link">
+        <visual name="box"><geometry><box><size>0.12 0.08 0.06</size></box></geometry>
+          <material><ambient>0.1 0.9 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse><emissive>0.05 0.4 0.1 1</emissive></material></visual>
+        <visual name="ant"><pose>0 0 0.08 0 0 0</pose><geometry><cylinder><radius>0.006</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="uwb_anchor_2"><static>true</static><pose>-0.5 4.2 1.6 0 0 0</pose>
+      <link name="link">
+        <visual name="box"><geometry><box><size>0.12 0.08 0.06</size></box></geometry>
+          <material><ambient>0.1 0.9 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse><emissive>0.05 0.4 0.1 1</emissive></material></visual>
+        <visual name="ant"><pose>0 0 0.08 0 0 0</pose><geometry><cylinder><radius>0.006</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="uwb_anchor_3"><static>true</static><pose>-0.5 -4.2 1.6 0 0 0</pose>
+      <link name="link">
+        <visual name="box"><geometry><box><size>0.12 0.08 0.06</size></box></geometry>
+          <material><ambient>0.1 0.9 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse><emissive>0.05 0.4 0.1 1</emissive></material></visual>
+        <visual name="ant"><pose>0 0 0.08 0 0 0</pose><geometry><cylinder><radius>0.006</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="uwb_anchor_4"><static>true</static><pose>11.0 4.2 1.6 0 0 0</pose>
+      <link name="link">
+        <visual name="box"><geometry><box><size>0.12 0.08 0.06</size></box></geometry>
+          <material><ambient>0.1 0.9 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse><emissive>0.05 0.4 0.1 1</emissive></material></visual>
+        <visual name="ant"><pose>0 0 0.08 0 0 0</pose><geometry><cylinder><radius>0.006</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="uwb_anchor_5"><static>true</static><pose>11.0 -4.2 1.6 0 0 0</pose>
+      <link name="link">
+        <visual name="box"><geometry><box><size>0.12 0.08 0.06</size></box></geometry>
+          <material><ambient>0.1 0.9 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse><emissive>0.05 0.4 0.1 1</emissive></material></visual>
+        <visual name="ant"><pose>0 0 0.08 0 0 0</pose><geometry><cylinder><radius>0.006</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+
   </world>
 </sdf>

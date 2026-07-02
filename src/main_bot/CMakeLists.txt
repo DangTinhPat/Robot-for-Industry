@@ -32,6 +32,8 @@ install(
   PROGRAMS
     scripts/odom_tf_relay.py
     scripts/dock_to_charge.py
+    scripts/uwb_sim_node.py
+    scripts/uwb_localization_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

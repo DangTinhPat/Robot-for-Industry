@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ─── UWB tag — module định vị gắn trên cột nhỏ giữa nóc xe ───
+       Tag chỉ là visual (mô phỏng range do uwb_sim_node.py tính từ
+       ground-truth pose). Cao độ tag so với sàn ≈ 0.12m — PHẢI khớp
+       tag_height trong config/uwb.yaml. -->
+
+  <material name="uwb_green">
+    <color rgba="0.1 0.9 0.2 1.0"/>
+  </material>
+
+  <xacro:property name="uwb_mast_height" value="0.03"/>
+  <xacro:property name="uwb_tag_size"    value="0.02"/>
+
+  <link name="uwb_tag">
+    <visual>
+      <origin xyz="0 0 ${-uwb_mast_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.003" length="${uwb_mast_height}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${uwb_tag_size} ${uwb_tag_size} 0.008"/>
+      </geometry>
+      <material name="uwb_green"/>
+    </visual>
+    <xacro:inertial_box mass="0.001" x="${uwb_tag_size}" y="${uwb_tag_size}" z="0.008">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+
+  <!-- Giữa nóc chassis, trên cột 3cm: z sàn = chassis_z_offset
+       + chassis_height/2 + mast = 0.022+0.031+0.031+0.03 ≈ 0.114 -->
+  <joint name="uwb_tag_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="uwb_tag"/>
+    <origin xyz="0 0 ${chassis_height/2 + uwb_mast_height}" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="uwb_tag">
+    <material>
+      <ambient>0.1 0.9 0.2 1</ambient>
+      <diffuse>0.1 0.9 0.2 1</diffuse>
+    </material>
+  </gazebo>
+
+  <!-- Ground-truth pose cho mô phỏng UWB: uwb_sim_node lấy pose thật của
+       robot từ đây để tính range tới các anchor (bridge trong gz_bridge.yaml).
+       Đã kiểm chứng: plugin xuất pose trong frame WORLD của Gazebo
+       (gt_pose_frame="world" trong uwb.yaml). Robot thực không có plugin này. -->
+  <gazebo>
+    <plugin filename="gz-sim-odometry-publisher-system"
+            name="gz::sim::systems::OdometryPublisher">
+      <odom_topic>/ground_truth/odom</odom_topic>
+      <odom_frame>ground_truth_origin</odom_frame>
+      <robot_base_frame>base_footprint_gt</robot_base_frame>
+      <odom_publish_frequency>50</odom_publish_frequency>
+    </plugin>
+  </gazebo>
+
+</robot>

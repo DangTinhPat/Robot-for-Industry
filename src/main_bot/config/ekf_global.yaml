@@ -1,0 +1,115 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ekf_global.yaml — EKF toàn cục: thay AMCL phát TF map→odom.
+#
+# Kiến trúc dual-EKF chuẩn của robot_localization (giống GPS ngoài trời,
+# nguồn tuyệt đối ở đây là UWB thay vì navsat):
+#   - ekf_filter_node (ekf.yaml, chạy trong gazebo.launch.py):
+#       wheel odom + IMU → TF odom→base_footprint  (mượt, có trôi)
+#   - ekf_global_node (file này, chạy trong nav2_uwb.launch.py):
+#       wheel odom + IMU + /uwb/pose → TF map→odom (tuyệt đối, không trôi)
+#
+# world_frame = map ⇒ node tự phát map→odom = (map→base) ∘ (odom→base)⁻¹,
+# lấy odom→base từ TF của EKF cục bộ.
+#
+# Trạng thái ban đầu mặc định = 0 ⇒ đúng, vì robot luôn spawn tại gốc map
+# (map được SLAM tạo bắt đầu từ chính điểm spawn).
+# ─────────────────────────────────────────────────────────────────────────────
+ekf_global_node:
+  ros__parameters:
+    frequency: 30.0
+    sensor_timeout: 0.1
+    two_d_mode: true
+
+    map_frame:       map
+    odom_frame:      odom
+    base_link_frame: base_footprint
+    world_frame:     map
+
+    publish_tf: true
+    publish_acceleration: false
+
+    # Scale process noise theo tốc độ: đứng yên → Q≈0 → pose đứng im tuyệt
+    # đối (không rung theo nhiễu UWB); di chuyển → Q đầy đủ → bám tốt.
+    dynamic_process_noise_covariance: true
+
+    # ── Nguồn 1: Encoder odometry — CHỈ vận tốc (pose của nó trôi) ──────────
+    # vy=true: odometry Ackermann luôn báo vy=0 — chính là ràng buộc
+    # non-holonomic (xe không trượt ngang). Thiếu nó, vị trí ngang thân xe
+    # chỉ được ràng bởi UWB → rung theo nhiễu UWB khi đứng yên.
+    odom0: /ackermann_steering_controller/odometry
+    #        x      y      z      r      p      yaw    vx     vy     vz     vr     vp     vyaw   ax     ay     az
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+    odom0_differential: false
+    odom0_relative:     false
+    odom0_queue_size:   10
+
+    # ── Nguồn 2: IMU — chỉ tốc độ quay (yaw tuyệt đối đã nằm trong /uwb/pose)
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_relative:     false
+    imu0_queue_size:   10
+    imu0_remove_gravitational_acceleration: true
+
+    # ── Nguồn 3: UWB — vị trí + heading tuyệt đối trong frame map ───────────
+    pose0: /uwb/pose
+    pose0_config: [true,  true,  false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    pose0_differential: false
+    pose0_relative:     false
+    pose0_queue_size:   10
+    # Gate Mahalanobis: chặn phép đo NLOS lọt qua outlier-rejection của
+    # uwb_localization_node (đo bằng số σ so với trạng thái hiện tại).
+    # LƯU Ý tên tham số: nguồn pose dùng "_rejection_threshold" (khác
+    # odom/imu dùng "_pose_rejection_threshold") — xem ekf.yaml mẫu của
+    # robot_localization. 3.5σ ≈ 26cm với min_pose_std=0.05 — đủ chặn
+    # spike NLOS 0.3m+ nhưng vẫn cho hồi phục khi bị bế đi chỗ khác.
+    pose0_rejection_threshold: 3.5
+
+    # Cho phép hội tụ nhanh nếu vị trí xuất phát lệch nhẹ so với gốc map
+    initial_estimate_covariance: [1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.5,  0.0,  0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1e-9, 0.0,  0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1e-9, 0.0,
+                                  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1e-9]
+
+    # Q vị trí x,y hạ 0.05→0.01: robot đứng yên không bị "rung" theo nhiễu
+    # UWB (đã đo: Q=0.05 → std 3.6cm/range 25cm khi đứng yên). Tracking khi
+    # di chuyển vẫn tốt vì prediction chạy bằng vận tốc từ odom/IMU.
+    process_noise_covariance: [
+      0.01,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.01,   0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.06,   0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.03,   0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.03,   0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.06,   0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.025,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.025,  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.04,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.01,   0.0,    0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.01,   0.0,    0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.02,   0.0,    0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.01,   0.0,    0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.01,   0.0,
+      0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.015]

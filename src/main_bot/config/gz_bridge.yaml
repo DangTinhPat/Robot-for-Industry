@@ -19,6 +19,15 @@
   gz_type_name: gz.msgs.LaserScan
   direction: GZ_TO_ROS
 
+# Ground-truth pose robot (plugin OdometryPublisher trong uwb_tag.xacro) —
+# CHỈ dùng cho mô phỏng UWB (uwb_sim_node tính range từ pose thật) và đánh
+# giá sai số định vị. Robot thực không có topic này.
+- ros_topic_name: /ground_truth/odom
+  gz_topic_name: /ground_truth/odom
+  ros_type_name: nav_msgs/msg/Odometry
+  gz_type_name: gz.msgs.Odometry
+  direction: GZ_TO_ROS
+
 # /joint_states đã được joint_state_broadcaster (ros2_control) publish
 # KHÔNG bridge từ Gazebo để tránh xung đột
 

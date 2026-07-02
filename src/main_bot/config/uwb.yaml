@@ -1,0 +1,63 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# uwb.yaml — cấu hình chung cho uwb_sim_node.py và uwb_localization_node.py
+#
+# Dùng section /** để cả 2 node đọc chung 1 file — anchor chỉ khai báo 1 chỗ.
+#
+# HỆ TỌA ĐỘ (quan trọng):
+#   - anchors_world: tọa độ anchor trong frame WORLD của Gazebo — phải khớp
+#     các model uwb_anchor_* trong worlds/warehouse.sdf.
+#   - Frame `map` (bản đồ my_map.yaml do SLAM tạo) KHÔNG trùng world:
+#     map được bắt đầu tại điểm spawn của robot → gốc map = (3.75, -4.175)
+#     trong world, xoay +90° (robot spawn quay mặt về hướng Bắc).
+#     world_to_map_xy_yaw chính là "khảo sát" transform đó — tương đương
+#     việc đo đạc tọa độ anchor trong frame bản đồ ở hệ thống thực.
+#     Nếu sau này LƯU BẢN ĐỒ MỚI từ vị trí xuất phát khác → phải cập nhật
+#     transform này.
+# ─────────────────────────────────────────────────────────────────────────────
+/**:
+  ros__parameters:
+    use_sim_time: true
+
+    # [x0,y0,z0, x1,y1,z1, ...] — 6 anchor, frame world Gazebo (khớp SDF)
+    anchors_world: [-11.9, -4.2, 1.6,
+                    -11.9,  4.2, 1.6,
+                     -0.5,  4.2, 1.6,
+                     -0.5, -4.2, 1.6,
+                     11.0,  4.2, 1.6,
+                     11.0, -4.2, 1.6]
+
+    # Pose của GỐC FRAME MAP trong world: [x, y, yaw] — xem chú thích trên
+    world_to_map_xy_yaw: [3.75, -4.175, 1.5707963]
+
+    # Chiều cao tag trên robot so với sàn (khớp uwb_tag.xacro ≈ 0.114m)
+    tag_height: 0.114
+
+    # ── uwb_sim_node (giả lập phần cứng) ────────────────────────────────
+    range_rate_hz: 20.0        # tần số đo — DWM1000 single-tag đạt 20Hz tốt
+    range_noise_std: 0.05      # σ nhiễu Gaussian trên khoảng cách (m)
+    dropout_prob: 0.02         # xác suất mất gói mỗi anchor mỗi chu kỳ
+    nlos_prob: 0.03            # xác suất bị NLOS (kệ/tường chắn) → bias dương
+    nlos_bias_min: 0.10        # m
+    nlos_bias_max: 0.40        # m
+    gt_topic: "/ground_truth/odom"
+    # Đã kiểm chứng thực nghiệm: OdometryPublisher (gz Harmonic) xuất pose
+    # trong frame WORLD của Gazebo → anchor giữ nguyên tọa độ world khi tính
+    # range ("relative" chỉ dùng nếu plugin đổi hành vi ở version khác)
+    gt_pose_frame: "world"
+
+    # ── uwb_localization_node (multilateration) ─────────────────────────
+    solve_rate_hz: 20.0
+    range_timeout: 0.30        # chỉ dùng range mới hơn ngưỡng này (s)
+    min_anchors: 3
+    outlier_sigma: 3.0         # loại range có residual > 3σ (bắt NLOS)
+    max_speed: 1.5             # m/s — gate phát hiện nghiệm "nhảy" bất thường
+    min_pose_std: 0.08         # m — sàn độ tin cậy khai với EKF (chống rung)
+    yaw_std: 0.05              # rad — độ tin cậy yaw lấy từ IMU
+
+    # Heading: UWB 1-tag không tự đo được hướng → lấy yaw từ IMU.
+    # imu_yaw_offset = góc lệch cố định giữa yaw IMU và yaw frame map
+    # (khảo sát 1 lần). Gazebo IMU mặc định lấy hướng ban đầu làm mốc,
+    # mà gốc map cũng chính là pose spawn → offset = 0.
+    use_imu_yaw: true
+    imu_topic: "/imu"
+    imu_yaw_offset: 0.0

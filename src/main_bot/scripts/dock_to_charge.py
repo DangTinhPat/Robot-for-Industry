@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
-"""
-dock_to_charge.py — đưa robot quay về trạm sạc (docking).
 
-Gửi 1 goal duy nhất qua Nav2 (navigate_to_pose) tới đúng vị trí bến sạc
-(Room B, tường Nam, x=3.75 y=-4.175, hướng Bắc — khớp pose robot spawn
-trong gazebo.launch.py). Chạy một lần rồi thoát — không phải service
-thường trực (BasicNavigator tự spin nội bộ nên không an toàn khi chạy
-trong callback lặp lại, xem bài học từ frontier_explorer trước đây).
-
-Yêu cầu: Nav2 đã chạy sẵn (nav2_bringup.launch.py hoặc tương đương).
-
-Dùng: ros2 run main_bot dock_to_charge.py
-"""
 import math
 import sys
 
@@ -19,10 +7,13 @@ import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 
-# Vị trí + hướng bến sạc — khớp robot spawn trong gazebo.launch.py
-DOCK_X = 3.75
-DOCK_Y = -4.175
-DOCK_YAW = 1.5708  # hướng Bắc, khớp miệng bến sạc mở về phía Bắc
+# Vị trí + hướng bến sạc trong FRAME MAP (không phải world Gazebo!).
+# Bản đồ my_map được SLAM tạo bắt đầu từ chính điểm spawn/bến sạc
+# → bến sạc = gốc map (0, 0, yaw 0). Nếu lưu bản đồ mới từ vị trí
+# xuất phát khác thì phải cập nhật lại các giá trị này.
+DOCK_X = 0.0
+DOCK_Y = 0.0
+DOCK_YAW = 0.0
 
 
 def yaw_to_quaternion(yaw):
@@ -32,7 +23,10 @@ def yaw_to_quaternion(yaw):
 def main():
     rclpy.init()
     navigator = BasicNavigator()
-    navigator.waitUntilNav2Active()
+    # localizer='bt_navigator': mặc định hàm này chờ node 'amcl' — hệ này
+    # định vị bằng UWB (không có AMCL) nên sẽ treo vĩnh viễn. bt_navigator
+    # có mặt ở cả 2 chế độ (nav2_bringup lẫn nav2_uwb) nên chờ nó là đủ.
+    navigator.waitUntilNav2Active(localizer='bt_navigator')
 
     dock_pose = PoseStamped()
     dock_pose.header.frame_id = 'map'
