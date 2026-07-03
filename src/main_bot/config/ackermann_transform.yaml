@@ -10,11 +10,18 @@ ackermann_transform:
     wheel_radius: 0.05        # bán kính bánh (m)
     max_steer_angle: 0.52     # giới hạn servo (rad ≈ 29.8°), từ ros2_control.xacro
 
-    # ── Giới hạn tốc độ ────────────────────────────────────────────────────
-    # omega_max ở v_max = 0.8 * tan(0.52) / 0.21 ≈ 2.18 rad/s
+    # ── Giới hạn tốc độ / độ mượt ──────────────────────────────────────────
+    # Node smooth trong không gian (v, GÓC LÁI δ) — không phải (v, ω) —
+    # để lệnh xuất ra luôn nằm trong khả năng bám của servo lái.
+    # Mọi tham số dưới đây đổi được LÚC CHẠY:
+    #   ros2 param set /ackermann_transform max_steer_rate 0.8
     max_linear_speed: 0.8     # m/s — tốc độ thẳng tối đa
-    max_linear_accel: 1.0     # m/s² — gia tốc tuyến tính tối đa
-    max_angular_accel: 2.0    # rad/s² — gia tốc góc tối đa
+    max_linear_accel: 1.0     # m/s² — gia tốc khi tăng tốc
+    max_linear_decel: 1.5     # m/s² — khi phanh/đổi chiều (được phép gắt hơn)
+    max_steer_rate: 1.0       # rad/s — tốc độ đánh lái, khớp steering_velocity
+                              # trong ros2_control.xacro; giảm → lái êm hơn
+    smoothing_time_constant: 0.05  # s — EMA lọc nhiễu lệnh MPPI; 0 = tắt,
+                              # tăng (0.1-0.2) nếu vẫn thấy rung tay lái
 
     # ── Xử lý pure-rotation ────────────────────────────────────────────────
     # TEB có thể ra lệnh v=0, omega≠0 (xoay tại chỗ) — Ackermann không làm được.

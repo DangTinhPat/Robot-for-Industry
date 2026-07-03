@@ -23,6 +23,11 @@ Thuật toán mỗi chu kỳ (20Hz):
      "tôi không chắc" để EKF hạ trọng số.
   6. Gate nhảy vị trí: nghiệm dịch nhanh hơn max_speed → thổi phồng
      covariance ×25 thay vì vứt bỏ (EKF tự cân).
+  7. Kidnap recovery: EKF toàn cục dùng dynamic process noise (đứng yên →
+     Q≈0) nên nếu robot bị BẾ đi chỗ khác, gate Mahalanobis sẽ chặn UWB
+     vĩnh viễn. Node này theo dõi độ lệch UWB↔EKF: lệch > kidnap_threshold
+     liên tục kidnap_time giây → publish reset lên /initialpose (topic
+     set_pose của ekf_global, trùng luôn với nút 2D Pose Estimate của RViz).
 """
 import math
 from itertools import combinations
@@ -32,6 +37,7 @@ import rclpy
 from rclpy.node import Node
 
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, Range
 
 
@@ -59,6 +65,11 @@ class UwbLocalizationNode(Node):
         self.declare_parameter('imu_topic', '/imu')
         self.declare_parameter('imu_yaw_offset', 0.0)
         self.declare_parameter('yaw_std', 0.05)
+        # Kidnap recovery (mục 7 docstring)
+        self.declare_parameter('ekf_pose_topic', '/odometry/global')
+        self.declare_parameter('reset_topic', '/initialpose')
+        self.declare_parameter('kidnap_threshold', 0.8)   # m
+        self.declare_parameter('kidnap_time', 5.0)        # s lệch liên tục
 
         flat = list(self.get_parameter('anchors_world').value)
         if len(flat) < 9 or len(flat) % 3 != 0:
@@ -87,12 +98,19 @@ class UwbLocalizationNode(Node):
         self.imu_yaw_offset = self.get_parameter('imu_yaw_offset').value
         self.yaw_std = self.get_parameter('yaw_std').value
 
+        self.kidnap_threshold = self.get_parameter('kidnap_threshold').value
+        self.kidnap_time = self.get_parameter('kidnap_time').value
+
         # cache range mới nhất theo anchor: (range, t_nhận_theo_giây)
         self.latest = [None] * self.n_anchors
         self.imu_yaw = None
         self.imu_time = None
         self.last_solution = None   # (x, y)
         self.last_solve_time = None
+        self.ekf_xy = None          # pose EKF toàn cục mới nhất
+        self.ekf_time = None
+        self.diverged_since = None  # thời điểm bắt đầu lệch UWB↔EKF
+        self.reset_cooldown = 0.0
 
         for i in range(self.n_anchors):
             self.create_subscription(
@@ -101,8 +119,13 @@ class UwbLocalizationNode(Node):
         if self.use_imu_yaw:
             self.create_subscription(
                 Imu, self.get_parameter('imu_topic').value, self.imu_callback, 50)
+        self.create_subscription(
+            Odometry, self.get_parameter('ekf_pose_topic').value,
+            self.ekf_callback, 10)
 
         self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/uwb/pose', 10)
+        self.reset_pub = self.create_publisher(
+            PoseWithCovarianceStamped, self.get_parameter('reset_topic').value, 1)
 
         rate = self.get_parameter('solve_rate_hz').value
         self.create_timer(1.0 / rate, self.solve)
@@ -122,6 +145,11 @@ class UwbLocalizationNode(Node):
     def imu_callback(self, msg: Imu):
         self.imu_yaw = yaw_from_quaternion(msg.orientation) + self.imu_yaw_offset
         self.imu_time = self.now_sec()
+
+    def ekf_callback(self, msg: Odometry):
+        p = msg.pose.pose.position
+        self.ekf_xy = (p.x, p.y)
+        self.ekf_time = self.now_sec()
 
     # ── solver ──────────────────────────────────────────────────────────────
 
@@ -190,7 +218,7 @@ class UwbLocalizationNode(Node):
         # 2 anchor NLOS cùng lúc (~1.3%/chu kỳ với 6 anchor @3% NLOS) mà
         # cách bỏ-dần-từng-cái dễ nhận nhầm anchor tốt.
         n = len(h)
-        best = None      # (rms, p, J, W, norm_res)
+        best = None      # (score, p, J, W, norm_res)
         for drop in range(0, min(3, n - self.min_anchors + 1)):
             for keep in combinations(range(n), n - drop):
                 k = list(keep)
@@ -200,9 +228,16 @@ class UwbLocalizationNode(Node):
                 p, J, W, norm_res = result
                 if np.max(np.abs(norm_res)) > self.outlier_sigma:
                     continue
-                rms = float(np.sqrt(np.mean(norm_res ** 2)))
-                if best is None or rms < best[0]:
-                    best = (rms, p, J, W, norm_res)
+                score = float(np.sqrt(np.mean(norm_res ** 2)))
+                # Prior liên tục: khi 2 anchor NLOS cùng lúc, đôi khi một
+                # tổ hợp SAI lại có RMS thấp hơn tổ hợp đúng do may rủi —
+                # cộng phạt nhẹ theo khoảng cách tới nghiệm trước (bão hòa
+                # ở 2.0 để nghiệm sai cũ không giữ chân mãi được)
+                if self.last_solution is not None:
+                    d_prev = math.dist(p, self.last_solution)
+                    score += 0.5 * min(d_prev / 0.3, 2.0)
+                if best is None or score < best[0]:
+                    best = (score, p, J, W, norm_res)
             if best is not None:
                 break    # ưu tiên tổ hợp nhiều anchor nhất
         if best is None:
@@ -231,22 +266,66 @@ class UwbLocalizationNode(Node):
 
         # Gate nhảy vị trí phi vật lý (multilateration glitch / NLOS lọt lưới)
         now = self.now_sec()
+        clean_solve = best is not None
         if self.last_solution is not None and self.last_solve_time is not None:
             dt = max(now - self.last_solve_time, 1e-3)
             jump = math.dist(p, self.last_solution)
             if jump > self.max_speed * dt + 4.0 * self.sigma_r:
                 cov2 = cov2 * 25.0
+                clean_solve = False
                 self.get_logger().warn(
                     f'UWB nhảy {jump:.2f}m/{dt:.2f}s — phồng covariance',
                     throttle_duration_sec=2.0)
         self.last_solution = (float(p[0]), float(p[1]))
         self.last_solve_time = now
 
+        self.check_kidnap(p, now, clean_solve)
+
         msg = PoseWithCovarianceStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'map'
         msg.pose.pose.position.x = float(p[0])
         msg.pose.pose.position.y = float(p[1])
+        self._publish(msg, cov2, now)
+
+    def check_kidnap(self, p, now, clean_solve):
+        """Robot bị bế đi nơi khác: EKF (dynamic Q, đứng yên → Q≈0) sẽ chặn
+        UWB vĩnh viễn qua gate Mahalanobis → tự re-seed EKF từ UWB."""
+        if not clean_solve or self.ekf_xy is None or self.ekf_time is None:
+            return
+        if now - self.ekf_time > 1.0 or now < self.reset_cooldown:
+            self.diverged_since = None
+            return
+        if math.dist(p, self.ekf_xy) < self.kidnap_threshold:
+            self.diverged_since = None
+            return
+        if self.diverged_since is None:
+            self.diverged_since = now
+            return
+        if now - self.diverged_since < self.kidnap_time:
+            return
+        reset = PoseWithCovarianceStamped()
+        reset.header.stamp = self.get_clock().now().to_msg()
+        reset.header.frame_id = 'map'
+        reset.pose.pose.position.x = float(p[0])
+        reset.pose.pose.position.y = float(p[1])
+        if self.imu_yaw is not None:
+            reset.pose.pose.orientation.z = math.sin(self.imu_yaw / 2.0)
+            reset.pose.pose.orientation.w = math.cos(self.imu_yaw / 2.0)
+        else:
+            reset.pose.pose.orientation.w = 1.0
+        cov = [0.0] * 36
+        cov[0] = cov[7] = 0.01     # (10cm)²
+        cov[35] = 0.01             # (0.1rad)²
+        reset.pose.covariance = cov
+        self.reset_pub.publish(reset)
+        self.get_logger().warn(
+            f'UWB↔EKF lệch {math.dist(p, self.ekf_xy):.2f}m suốt '
+            f'{self.kidnap_time:.0f}s — re-seed EKF về ({p[0]:.2f}, {p[1]:.2f})')
+        self.diverged_since = None
+        self.reset_cooldown = now + 10.0
+
+    def _publish(self, msg, cov2, now):
 
         cov = [0.0] * 36
         cov[0] = float(cov2[0, 0])

@@ -98,7 +98,8 @@ controller_server:
       vy_std: 0.0        # Ackermann: không trượt ngang
       wz_std: 0.4
       vx_max: 0.5
-      vx_min: -0.2       # cho phép lùi tối đa 0.2 m/s
+      vx_min: -0.4       # lùi 80% tốc độ tiến — lùi quá chậm làm MPPI thấy
+                         # "không bõ" nên né lùi, và khi lùi thì bò
       vy_max: 0.0        # Ackermann: không trượt ngang
       wz_max: 1.36       # = vx_max / R_min = 0.5 / 0.367
       iteration_count: 1
@@ -125,12 +126,13 @@ controller_server:
       GoalCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 5.0
+        cost_weight: 8.0          # 5.0 → 8.0: hút mạnh về đích, chống "nhảy
+                                  # múa" quanh đích (Failed to make progress)
         threshold_to_consider: 1.4
       GoalAngleCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 3.0
+        cost_weight: 5.0          # 3.0 → 5.0: dứt khoát xoay về đúng hướng đích
         threshold_to_consider: 0.5
       PreferForwardCritic:
         enabled: true
@@ -152,15 +154,18 @@ controller_server:
         cost_weight: 7.0
         max_path_occupancy_ratio: 0.05
         trajectory_point_step: 4
-        threshold_to_consider: 0.5
+        threshold_to_consider: 0.3  # bám path (đã có hướng lùi/tiến) sát đích hơn
         offset_from_furthest: 20
-        use_path_orientations: false
+        # true = BẮT BUỘC với planner REEDS_SHEPP: path có đoạn lùi, nếu bỏ
+        # qua hướng thì MPPI cố đi TIẾN theo đoạn lẽ ra phải lùi → "đi dại"
+        use_path_orientations: true
       PathFollowCritic:
         enabled: true
         cost_power: 1
         cost_weight: 8.0
         offset_from_furthest: 5
-        threshold_to_consider: 1.4
+        threshold_to_consider: 0.4  # 1.4 → 0.4: đừng bỏ path quá sớm — đoạn
+                                    # cuối Reeds-Shepp chính là maneuver căn đích
       PathAngleCritic:
         enabled: true
         cost_power: 1
@@ -168,7 +173,8 @@ controller_server:
         offset_from_furthest: 4
         threshold_to_consider: 0.5
         max_angle_to_furthest: 1.0
-        mode: 0
+        mode: 2   # 0 = "ưu tiên tiến" (chặn lùi!); 2 = tôn trọng hướng
+                  # khả thi của path Reeds-Shepp — đúng cho xe biết lùi
 
 local_costmap:
   local_costmap:
@@ -271,7 +277,8 @@ planner_server:
       analytic_expansion_max_cost: 200.0
       analytic_expansion_max_cost_override: false
       minimum_turning_radius: 0.40       # >= R_min (0.367), thêm margin
-      reverse_penalty: 3.0              # was 2.0 — vẫn ưu tiên tiến hơn lùi
+      reverse_penalty: 1.5              # 3.0 → 1.5: 1m lùi "đắt" bằng 1.5m tiến
+                                        # — 3.0 làm planner thà vòng xa còn hơn lùi
       change_penalty: 0.0
       non_straight_penalty: 1.2
       cost_penalty: 2.0
@@ -344,7 +351,7 @@ velocity_smoother:
     scale_velocities: False
     feedback: "CLOSED_LOOP"    # Đọc odom thực để smoothing chính xác
     max_velocity: [0.5, 0.0, 2.0]
-    min_velocity: [-0.2, 0.0, -2.0]    # cho phép lùi tối đa 0.2 m/s (đồng bộ vx_min)
+    min_velocity: [-0.4, 0.0, -2.0]    # đồng bộ với vx_min của MPPI
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
     odom_topic: "odom"

@@ -80,8 +80,12 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_global_node',
         parameters=[ekf_global, {'use_sim_time': use_sim_time}],
-        # đổi tên output — /odom đã là của EKF cục bộ trong gazebo.launch.py
-        remappings=[('odometry/filtered', 'odometry/global')],
+        # odometry/filtered → odometry/global: /odom đã là của EKF cục bộ.
+        # set_pose → /initialpose: nhận reset từ uwb_localization_node (tự
+        # hồi phục khi bị bế đi chỗ khác) VÀ từ nút 2D Pose Estimate của
+        # RViz — giống thao tác với AMCL trước đây.
+        remappings=[('odometry/filtered', 'odometry/global'),
+                    ('set_pose', '/initialpose')],
         output='screen',
         # node chết (máy quá tải, OOM...) → tự dậy lại; nếu thiếu node này
         # thì không có TF map→odom và global costmap sẽ không activate
